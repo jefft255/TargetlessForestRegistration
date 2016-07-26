@@ -1,0 +1,8 @@
+*.obj
+*.tlog
+*.log
+*.cache
+*.deps
+*.idb
+*.pdb
+*.vcxproj
