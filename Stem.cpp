@@ -1,9 +1,12 @@
 #include "Stem.h"
+#include <stdexcept>
 
 Stem::Stem() {}
 
-Stem::Stem(float x, float y, float z, float radius)
+Stem::Stem(double x, double y, double z, double radius)
 {
+	if (radius < 0) throw std::invalid_argument("Radius must be positive");
+
 	this->coords(0) = x;
 	this->coords(1) = y;
 	this->coords(2) = z;
@@ -21,7 +24,28 @@ Stem::~Stem()
 {
 }
 
-void Stem::changeCoords(Eigen::Matrix4f const &transMatrix)
+void Stem::changeCoords(Eigen::Matrix4d const &transMatrix)
 {
 	this->coords = transMatrix*this->coords;
+}
+
+Eigen::Vector4d Stem::getCoords()
+{
+	return this->coords;
+}
+void Stem::setCoords(const Eigen::Vector4d &coords)
+{
+	if (coords[3] != 1) throw std::invalid_argument("4th element must be 1");
+	this->coords = coords;
+}
+
+double Stem::getRadius()
+{
+	return this->radius;
+}
+
+void Stem::setRadius(const double &radius)
+{
+	if (radius < 0) throw std::invalid_argument("Radius must be positive");
+	this->radius = radius;
 }
