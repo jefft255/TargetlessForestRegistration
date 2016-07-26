@@ -3,6 +3,8 @@
 
 StemMap::StemMap()
 {
+	this->stems = std::vector<Stem>();
+	this->transMatrix = Eigen::Matrix4f::Identity(); // No transform applied yet
 }
 
 
@@ -23,5 +25,11 @@ void StemMap::applyTransMatrix(Eigen::Matrix4f const &transMatrix)
 
 void StemMap::restoreOriginalCoords()
 {
+	// Simply apply the inverse transform!!
 	this->applyTransMatrix(this->transMatrix.inverse());
+}
+
+void StemMap::addStem(Stem &stem)
+{
+	this->stems.push_back(stem);
 }

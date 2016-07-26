@@ -6,7 +6,9 @@
 class Stem
 {
 public:
+	Stem();
 	Stem(float x, float y, float z, float radius);
+	Stem(const Stem &stem);
 	~Stem();
 	void changeCoords(Eigen::Matrix4f const &transMatrix);
 

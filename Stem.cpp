@@ -1,5 +1,6 @@
 #include "Stem.h"
 
+Stem::Stem() {}
 
 Stem::Stem(float x, float y, float z, float radius)
 {
@@ -10,6 +11,11 @@ Stem::Stem(float x, float y, float z, float radius)
 	this->radius = radius;
 }
 
+Stem::Stem(const Stem &stem)
+{
+	this->coords = stem.coords;
+	this->radius = stem.radius;
+}
 
 Stem::~Stem()
 {
