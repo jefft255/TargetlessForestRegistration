@@ -6,6 +6,7 @@
 class Stem
 {
 public:
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	Stem();
 	Stem(double x, double y, double z, double radius);
 	Stem(const Stem &stem);

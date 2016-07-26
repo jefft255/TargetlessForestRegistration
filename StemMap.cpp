@@ -1,9 +1,8 @@
 #include "StemMap.h"
 
-
 StemMap::StemMap()
 {
-	this->stems = std::vector<Stem>();
+	this->stems = std::vector<Stem, Eigen::aligned_allocator<Eigen::Vector4f>>();
 	this->transMatrix = Eigen::Matrix4d::Identity(); // No transform applied yet
 }
 
@@ -40,7 +39,7 @@ std::string StemMap::strStemMap()
 	std::stringstream output;
 	for (auto it = this->stems.begin(); it != stems.end(); it++)
 	{
-		output << "Coords : " << it->getCoords();
+		output << "Coords : " << it->getCoords()[0] << it->getCoords()[1] << it->getCoords()[2];
 		output << ", Radius : " << it->getRadius() << std::endl;
 	}
 
