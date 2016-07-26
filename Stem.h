@@ -13,10 +13,11 @@ public:
 	~Stem();
 	void changeCoords(Eigen::Matrix4d const &transMatrix);
 	// Getters and setters
-	Eigen::Vector4d getCoords();
+	Eigen::Vector4d getCoords() const;
 	void setCoords(const Eigen::Vector4d &coords);
-	double getRadius();
-	void setRadius(const double &radius);
+	double getRadius() const;
+	void setRadius(const double& radius);
+	bool operator==(const Stem& stem) const;
 
 private:
 	/*

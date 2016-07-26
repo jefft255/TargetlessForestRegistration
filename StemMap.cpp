@@ -6,6 +6,11 @@ StemMap::StemMap()
 	this->transMatrix = Eigen::Matrix4d::Identity(); // No transform applied yet
 }
 
+StemMap::StemMap(const StemMap &stemMap)
+{
+	this->stems = stemMap.stems;
+	this->transMatrix = stemMap.transMatrix;
+}
 
 StemMap::~StemMap()
 {
@@ -34,14 +39,19 @@ void StemMap::addStem(Stem &stem)
 	this->stems.push_back(stem);
 }
 
-std::string StemMap::strStemMap()
+std::string StemMap::strStemMap() const
 {
 	std::stringstream output;
 	for (auto it = this->stems.begin(); it != stems.end(); it++)
 	{
-		output << "Coords : " << it->getCoords()[0] << it->getCoords()[1] << it->getCoords()[2];
+		output << "Coords : " << it->getCoords()[0] << " " << it->getCoords()[1] << " " << it->getCoords()[2];
 		output << ", Radius : " << it->getRadius() << std::endl;
 	}
 
 	return output.str();
+}
+
+bool StemMap::operator==(const StemMap &stemMap) const
+{
+	return stemMap.stems == this->stems && stemMap.transMatrix == this->transMatrix;
 }

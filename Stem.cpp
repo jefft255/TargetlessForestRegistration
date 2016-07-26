@@ -29,23 +29,28 @@ void Stem::changeCoords(Eigen::Matrix4d const &transMatrix)
 	this->coords = transMatrix*this->coords;
 }
 
-Eigen::Vector4d Stem::getCoords()
+Eigen::Vector4d Stem::getCoords() const
 {
 	return this->coords;
 }
-void Stem::setCoords(const Eigen::Vector4d &coords)
+void Stem::setCoords(const Eigen::Vector4d& coords)
 {
 	if (coords[3] != 1) throw std::invalid_argument("4th element must be 1");
 	this->coords = coords;
 }
 
-double Stem::getRadius()
+double Stem::getRadius() const
 {
 	return this->radius;
 }
 
-void Stem::setRadius(const double &radius)
+void Stem::setRadius(const double& radius)
 {
 	if (radius < 0) throw std::invalid_argument("Radius must be positive");
 	this->radius = radius;
+}
+
+bool Stem::operator==(const Stem& stem) const
+{
+	return stem.coords == this->coords && stem.radius == this->radius;
 }

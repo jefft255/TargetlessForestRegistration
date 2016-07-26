@@ -11,11 +11,13 @@ class StemMap
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	StemMap();
+	StemMap(const StemMap &stemMap);
 	~StemMap();
 	void applyTransMatrix(Eigen::Matrix4d const &transMatrix);
 	void addStem(Stem &stem);
 	void restoreOriginalCoords();
-	std::string strStemMap();
+	std::string strStemMap() const;
+	bool operator==(const StemMap &stemMap) const;
 
 private:
 	/*
