@@ -13,8 +13,8 @@ public:
 private:
 	void generateTriplets(StemMap& stemMap, std::vector<std::vector<Stem*>>& permList);
 	void generatePairs();
-	void calculateLikeliness();
-	void generateEigenValues();
+	void removePairsWithDissimilarRadius();
+	void removePairsWithLowLikelihood();
 
 	StemMap target;
 	StemMap source;
