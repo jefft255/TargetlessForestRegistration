@@ -1,5 +1,6 @@
 #include "Registration.h"
 
+double getMeanOfVector(Eigen::Vector4d& coords);
 
 Registration::Registration()
 {
@@ -42,4 +43,43 @@ std::vector<std::vector<int>> nPerm(int n, int k)
 	} while (next_permutation(d.begin(), d.end()));
 
 	return result;
+}
+
+void Registration::generateEigenValues(StemTriplet& triplet)
+{
+	Eigen::Matrix3d covarianceMatrix;
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+		{
+			covarianceMatrix(i, j) =
+				 (std::get<0>(triplet)[i]->getCoords()[0] - getMeanOfVector(std::get<0>(triplet)[i]->getCoords()))
+				*(std::get<0>(triplet)[j]->getCoords()[0] - getMeanOfVector(std::get<0>(triplet)[j]->getCoords()))
+				+(std::get<0>(triplet)[i]->getCoords()[1] - getMeanOfVector(std::get<0>(triplet)[i]->getCoords()))
+				*(std::get<0>(triplet)[j]->getCoords()[1] - getMeanOfVector(std::get<0>(triplet)[j]->getCoords()))
+				+(std::get<0>(triplet)[i]->getCoords()[2] - getMeanOfVector(std::get<0>(triplet)[i]->getCoords()))
+				*(std::get<0>(triplet)[j]->getCoords()[2] - getMeanOfVector(std::get<0>(triplet)[j]->getCoords()));
+		}
+	}
+	Eigen::Matrix3d::EigenvaluesReturnType eigenvalues = covarianceMatrix.eigenvalues();
+	std::get<1>(triplet)[0] = eigenvalues(0);
+	std::get<1>(triplet)[1] = eigenvalues(1);
+	std::get<1>(triplet)[2] = eigenvalues(2);
+}
+
+void Registration::generateAllEigenValues()
+{
+	for (auto it = this->threePermSource.begin(); it != this->threePermSource.end(); ++it)
+	{
+		this->generateEigenValues(*it);
+	}
+	for (auto it = this->threePermTarget.begin(); it != this->threePermTarget.end(); ++it)
+	{
+		this->generateEigenValues(*it);
+	}
+}
+
+double getMeanOfVector(Eigen::Vector4d& coords)
+{
+	return (coords[0] + coords[1] + coords[2]) / 3;
 }
