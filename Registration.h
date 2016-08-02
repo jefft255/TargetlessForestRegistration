@@ -20,6 +20,7 @@ private:
 	void generateEigenValues(StemTriplet& triplet);
 	void removePairsWithDissimilarRadius();
 	void removePairsWithLowLikelihood();
+	void removeHighlyColinearPairs();
 
 	StemMap target;
 	StemMap source;

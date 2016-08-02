@@ -1,17 +1,21 @@
 #include "PairOfStemGroups.h"
 #include <Eigen/Eigenvalues>
 #include <math.h>
+#include <algorithm>
 
+// Helper functions declarations
 Eigen::Vector3d getCentroid(std::vector<Stem*> group);
+bool sortStemPointers(Stem* stem1, Stem* stem2);
 
-PairOfStemGroups::PairOfStemGroups(StemTriplet& targetTriplet, StemTriplet& sourceTriplet,
-	StemMap* targetMap, StemMap* sourceMap) :
+PairOfStemGroups::PairOfStemGroups(StemTriplet& targetTriplet, StemTriplet& sourceTriplet) :
 	eigenValuesSource(std::get<1>(sourceTriplet)),
 	eigenValuesTarget(std::get<1>(targetTriplet)),
 	targetGroup(std::get<0>(targetTriplet)),
 	sourceGroup(std::get<0>(sourceTriplet)),
 	bestTransform(Eigen::Matrix4d::Identity())
-{}
+{
+	this->sortStems();
+}
 
 
 PairOfStemGroups::~PairOfStemGroups()
@@ -35,6 +39,7 @@ void PairOfStemGroups::addFittingStem(Stem* sourceStem, Stem* targetStem)
 {
 	this->sourceGroup.push_back(sourceStem);
 	this->targetGroup.push_back(targetStem);
+	this->sortStems();
 }
 
 const Eigen::Matrix4d PairOfStemGroups::getBestTransform()
@@ -74,6 +79,14 @@ const Eigen::Matrix4d PairOfStemGroups::getBestTransform()
 	return optimalTransform;
 }
 
+// Sort the stem groups by the DBH
+void PairOfStemGroups::sortStems()
+{
+	std::sort(this->sourceGroup.begin(), this->sourceGroup.end(), sortStemPointers);
+	std::sort(this->targetGroup.begin(), this->targetGroup.end(), sortStemPointers);
+}
+
+// Compute the "average" point of a group of stems. Used in the least square solving.
 Eigen::Vector3d getCentroid(std::vector<Stem*> group)
 {
 	Eigen::Vector3d centroid;
@@ -86,4 +99,11 @@ Eigen::Vector3d getCentroid(std::vector<Stem*> group)
 	}
 	centroid = (1 / group.size())*centroid;
 	return centroid;
+}
+
+/* This is an auxilliary function to sort the vector of stems using
+   the DBH */
+bool sortStemPointers(Stem* stem1, Stem* stem2)
+{
+	return stem1->getRadius() < stem2->getRadius();
 }

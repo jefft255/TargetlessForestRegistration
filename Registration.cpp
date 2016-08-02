@@ -6,7 +6,11 @@ std::vector<std::vector<int>> nPerm(int n, int k);
 Registration::Registration()
 {
 	this->generateTriplets();
-	// TODO here, sort the stems in the triplet by radius
+	this->generateAllEigenValues();
+	this->generatePairs();
+	this->removeHighlyColinearPairs();
+	this->removePairsWithDissimilarRadius();
+	this->removePairsWithLowLikelihood();
 }
 
 
@@ -112,3 +116,18 @@ void Registration::generateTriplets()
 		tempTriplet = StemTriplet();
 	}
 }
+
+void Registration::generatePairs()
+{
+	for (auto itSource = this->threePermSource.begin(); itSource != this->threePermSource.begin(); ++itSource)
+	{
+		for (auto itTarget = this->threePermSource.begin(); itTarget != this->threePermSource.begin(); ++itTarget)
+		{
+			PairOfStemGroups tempPair(*itTarget, *itSource);
+			this->pairsOfStemTriplets.push_back(tempPair);
+		}
+	}
+}
+void Registration::removePairsWithDissimilarRadius() {}
+void Registration::removePairsWithLowLikelihood() {}
+void Registration::removeHighlyColinearPairs() {}
