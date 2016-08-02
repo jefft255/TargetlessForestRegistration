@@ -1,9 +1,12 @@
 #include "Registration.h"
 
 double getMeanOfVector(Eigen::Vector4d& coords);
+std::vector<std::vector<int>> nPerm(int n, int k);
 
 Registration::Registration()
 {
+	this->generateTriplets();
+	// TODO here, sort the stems in the triplet by radius
 }
 
 
@@ -53,12 +56,12 @@ void Registration::generateEigenValues(StemTriplet& triplet)
 		for (int j = 0; j < 3; ++j)
 		{
 			covarianceMatrix(i, j) =
-				 (std::get<0>(triplet)[i]->getCoords()[0] - getMeanOfVector(std::get<0>(triplet)[i]->getCoords()))
-				*(std::get<0>(triplet)[j]->getCoords()[0] - getMeanOfVector(std::get<0>(triplet)[j]->getCoords()))
-				+(std::get<0>(triplet)[i]->getCoords()[1] - getMeanOfVector(std::get<0>(triplet)[i]->getCoords()))
-				*(std::get<0>(triplet)[j]->getCoords()[1] - getMeanOfVector(std::get<0>(triplet)[j]->getCoords()))
-				+(std::get<0>(triplet)[i]->getCoords()[2] - getMeanOfVector(std::get<0>(triplet)[i]->getCoords()))
-				*(std::get<0>(triplet)[j]->getCoords()[2] - getMeanOfVector(std::get<0>(triplet)[j]->getCoords()));
+				 ((std::get<0>(triplet))[i]->getCoords()[0] - getMeanOfVector((std::get<0>(triplet))[i]->getCoords()))
+				*((std::get<0>(triplet))[j]->getCoords()[0] - getMeanOfVector((std::get<0>(triplet))[j]->getCoords()))
+				+((std::get<0>(triplet))[i]->getCoords()[1] - getMeanOfVector((std::get<0>(triplet))[i]->getCoords()))
+				*((std::get<0>(triplet))[j]->getCoords()[1] - getMeanOfVector((std::get<0>(triplet))[j]->getCoords()))
+				+((std::get<0>(triplet))[i]->getCoords()[2] - getMeanOfVector((std::get<0>(triplet))[i]->getCoords()))
+				*((std::get<0>(triplet))[j]->getCoords()[2] - getMeanOfVector((std::get<0>(triplet))[j]->getCoords()));
 		}
 	}
 	Eigen::Matrix3d::EigenvaluesReturnType eigenvalues = covarianceMatrix.eigenvalues();
@@ -79,7 +82,33 @@ void Registration::generateAllEigenValues()
 	}
 }
 
+// This is useful for computing the covariance matrix.
 double getMeanOfVector(Eigen::Vector4d& coords)
 {
 	return (coords[0] + coords[1] + coords[2]) / 3;
+}
+
+/* This function populate the stem triplets from both the target scan and the source scan.
+   We use the nPerm function to determine all the possible permutations. */
+void Registration::generateTriplets()
+{
+	std::vector<std::vector<int>> threePermNSource = nPerm(3, this->source.getStems().size());
+	std::vector<std::vector<int>> threePermNTarget = nPerm(3, this->target.getStems().size());
+	StemTriplet tempTriplet = StemTriplet();
+	for (auto it = threePermNSource.begin(); it != threePermNSource.end(); ++it)
+	{
+		std::get<0>(tempTriplet).push_back(&this->source.getStems()[(*it)[0]]);
+		std::get<0>(tempTriplet).push_back(&this->source.getStems()[(*it)[1]]);
+		std::get<0>(tempTriplet).push_back(&this->source.getStems()[(*it)[2]]);
+		this->threePermSource.push_back(tempTriplet);
+		tempTriplet = StemTriplet();
+	}
+	for (auto it = threePermNTarget.begin(); it != threePermNTarget.end(); ++it)
+	{
+		std::get<0>(tempTriplet).push_back(&this->target.getStems()[(*it)[0]]);
+		std::get<0>(tempTriplet).push_back(&this->target.getStems()[(*it)[1]]);
+		std::get<0>(tempTriplet).push_back(&this->target.getStems()[(*it)[2]]);
+		this->threePermTarget.push_back(tempTriplet);
+		tempTriplet = StemTriplet();
+	}
 }
