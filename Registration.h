@@ -1,7 +1,7 @@
 #pragma once
 
 #include "StemMap.h"
-#include "PairOfStemsTriplet.h"
+#include "PairOfStemGroups.h"
 #include <algorithm>
 #include <numeric>
 
@@ -14,7 +14,7 @@ public:
 	~Registration();
 
 private:
-	void generateTriplets(StemMap& stemMap, std::vector<std::vector<Stem*>>& permList);
+	void generateTriplets();
 	void generatePairs();
 	void generateAllEigenValues();
 	void generateEigenValues(StemTriplet& triplet);
@@ -32,6 +32,6 @@ private:
 	std::vector<StemTriplet> threePermSource;
 	/* Contains all possible combinaison of 2 triplets of trees, one from the target
 	and another from the source */
-	std::vector<PairOfStemsTriplet> pairsOfStemTriplets;
+	std::vector<PairOfStemGroups> pairsOfStemTriplets;
 };
 

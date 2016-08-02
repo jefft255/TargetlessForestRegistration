@@ -55,3 +55,8 @@ bool StemMap::operator==(const StemMap &stemMap) const
 {
 	return stemMap.stems == this->stems && stemMap.transMatrix == this->transMatrix;
 }
+
+std::vector<Stem, Eigen::aligned_allocator<Eigen::Vector4f>>& StemMap::getStems()
+{
+	return this->stems;
+}

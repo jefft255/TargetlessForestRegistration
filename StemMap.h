@@ -18,6 +18,7 @@ public:
 	void restoreOriginalCoords();
 	std::string strStemMap() const;
 	bool operator==(const StemMap &stemMap) const;
+	std::vector<Stem, Eigen::aligned_allocator<Eigen::Vector4f>>& getStems();
 
 private:
 	/*
