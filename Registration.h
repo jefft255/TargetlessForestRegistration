@@ -4,23 +4,27 @@
 #include "PairOfStemGroups.h"
 #include <algorithm>
 #include <numeric>
+#include <list>
 
 typedef std::pair<std::vector<Stem*>, std::vector<std::complex<double>>> StemTriplet;
 
 class Registration
 {
 public:
-	Registration();
+	Registration(StemMap& target, StemMap& source);
 	~Registration();
+	void computeBestTransform();
+	static const double DIAMETER_ERROR_TOL;
+	static const double LINEARITY_TOL;
 
 private:
-	void generateTriplets();
+	void generateTriplets(StemMap& stemMap, std::vector<StemTriplet>& threePerm);
 	void generatePairs();
 	void generateAllEigenValues();
 	void generateEigenValues(StemTriplet& triplet);
+	void removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets);
 	void removePairsWithDissimilarRadius();
-	void removePairsWithLowLikelihood();
-	void removeHighlyColinearPairs();
+	void sortPairsByLikelihood();
 
 	StemMap target;
 	StemMap source;
@@ -32,7 +36,8 @@ private:
 	std::vector<StemTriplet> threePermTarget;
 	std::vector<StemTriplet> threePermSource;
 	/* Contains all possible combinaison of 2 triplets of trees, one from the target
-	and another from the source */
-	std::vector<PairOfStemGroups> pairsOfStemTriplets;
+	and another from the source. Used list because we are going to be deleting
+	a lot of pairs as we go along. */
+	std::list<PairOfStemGroups> pairsOfStemTriplets;
 };
 

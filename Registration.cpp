@@ -1,16 +1,35 @@
 #include "Registration.h"
+#include <unordered_set>
 
+// Helper functions declaration
 double getMeanOfVector(Eigen::Vector4d& coords);
-std::vector<std::vector<int>> nPerm(int n, int k);
+std::vector<std::unordered_set<int>> nCombk(const int n, const int k);
+bool diametersNotCorresponding(PairOfStemGroups& pair);
+bool diamErrorGreaterThanTol(double error);
+bool colinearityGreaterThanTol(StemTriplet& triplet);
+// Define radius error tolerance here, as well as the thresold for colinear data
+const double Registration::DIAMETER_ERROR_TOL = 0.2;
+const double Registration::LINEARITY_TOL = 0.975;
 
-Registration::Registration()
+Registration::Registration(StemMap& target, StemMap& source) : target(target), source(source)
 {
-	this->generateTriplets();
+	this->generateTriplets(this->source, this->threePermSource);
+	this->generateTriplets(this->target, this->threePermTarget);
 	this->generateAllEigenValues();
+	this->removeHighlyColinearTriplets(this->threePermSource);
+	this->removeHighlyColinearTriplets(this->threePermTarget);
 	this->generatePairs();
-	this->removeHighlyColinearPairs();
 	this->removePairsWithDissimilarRadius();
-	this->removePairsWithLowLikelihood();
+	this->sortPairsByLikelihood();
+}
+
+void Registration::computeBestTransform()
+{
+	for (auto it = pairsOfStemTriplets.begin(); it != pairsOfStemTriplets.end(); ++it)
+	{
+		auto printTransform = it->computeBestTransform();
+		std::cout << printTransform << std::endl << std::endl;
+	}
 }
 
 
@@ -27,20 +46,23 @@ int Factorial(int n)
 	return result;
 }
 
-/* Found on stackoverflow, user Vaughn Cato
+
+
+/* Found on stackoverflow, user Vaughn Cato. I used his permutation function to
+generate combinations.
 http://stackoverflow.com/questions/28711797/generating-n-choose-k-permutations-in-c */
-std::vector<std::vector<int>> nPerm(int n, int k)
+std::vector<std::unordered_set<int>> nCombk(const int n, const int k)
 {
-	std::vector<std::vector<int>> result;
+	std::vector<std::unordered_set<int>> result;
 	std::vector<int> d(n);
 	std::iota(d.begin(), d.end(), 1);
 	int repeat = Factorial(n - k);
 	do
 	{
-		std::vector<int> tempPerm = {};
+		std::unordered_set<int> tempPerm = {};
 		for (int i = 0; i < k; i++)
 		{
-			tempPerm.push_back(d[i]);
+			tempPerm.insert(d[i]);
 		}
 		result.push_back(tempPerm);
 		for (int i = 1; i != repeat; ++i)
@@ -49,11 +71,15 @@ std::vector<std::vector<int>> nPerm(int n, int k)
 		}
 	} while (next_permutation(d.begin(), d.end()));
 
+	// Remove the duplicate (without order), we want combinations not permutations.
+	std::unique(result.begin(), result.end());
+
 	return result;
 }
 
 void Registration::generateEigenValues(StemTriplet& triplet)
 {
+	// Can be coded much cleaner. Needs to be revisited.
 	Eigen::Matrix3d covarianceMatrix;
 	for (int i = 0; i < 3; ++i)
 	{
@@ -69,9 +95,9 @@ void Registration::generateEigenValues(StemTriplet& triplet)
 		}
 	}
 	Eigen::Matrix3d::EigenvaluesReturnType eigenvalues = covarianceMatrix.eigenvalues();
-	std::get<1>(triplet)[0] = eigenvalues(0);
-	std::get<1>(triplet)[1] = eigenvalues(1);
-	std::get<1>(triplet)[2] = eigenvalues(2);
+	std::get<1>(triplet).push_back(eigenvalues(0));
+	std::get<1>(triplet).push_back(eigenvalues(1));
+	std::get<1>(triplet).push_back(eigenvalues(2));
 }
 
 void Registration::generateAllEigenValues()
@@ -93,41 +119,69 @@ double getMeanOfVector(Eigen::Vector4d& coords)
 }
 
 /* This function populate the stem triplets from both the target scan and the source scan.
-   We use the nPerm function to determine all the possible permutations. */
-void Registration::generateTriplets()
+   We use the nPerm function to determine all the possible combinations. */
+void Registration::generateTriplets(StemMap& stemMap, std::vector<StemTriplet>& threePerm)
 {
-	std::vector<std::vector<int>> threePermNSource = nPerm(3, this->source.getStems().size());
-	std::vector<std::vector<int>> threePermNTarget = nPerm(3, this->target.getStems().size());
+	std::vector<std::unordered_set<int>> threePermN = nCombk(stemMap.getStems().size(), 3);
 	StemTriplet tempTriplet = StemTriplet();
-	for (auto it = threePermNSource.begin(); it != threePermNSource.end(); ++it)
+	// -1 because the combinations start at 1 instead of 0.
+	for (auto it = threePermN.begin(); it != threePermN.end(); ++it)
 	{
-		std::get<0>(tempTriplet).push_back(&this->source.getStems()[(*it)[0]]);
-		std::get<0>(tempTriplet).push_back(&this->source.getStems()[(*it)[1]]);
-		std::get<0>(tempTriplet).push_back(&this->source.getStems()[(*it)[2]]);
-		this->threePermSource.push_back(tempTriplet);
-		tempTriplet = StemTriplet();
-	}
-	for (auto it = threePermNTarget.begin(); it != threePermNTarget.end(); ++it)
-	{
-		std::get<0>(tempTriplet).push_back(&this->target.getStems()[(*it)[0]]);
-		std::get<0>(tempTriplet).push_back(&this->target.getStems()[(*it)[1]]);
-		std::get<0>(tempTriplet).push_back(&this->target.getStems()[(*it)[2]]);
-		this->threePermTarget.push_back(tempTriplet);
+		for (auto jt = it->begin(); jt != it->end(); ++jt)
+			std::get<0>(tempTriplet).push_back(&stemMap.getStems()[*jt - 1]);
+		threePerm.push_back(tempTriplet);
 		tempTriplet = StemTriplet();
 	}
 }
 
+// Population the pairOfStemsTriplets attributes with all possible pairs. Cleanup is done later.
 void Registration::generatePairs()
 {
-	for (auto itSource = this->threePermSource.begin(); itSource != this->threePermSource.begin(); ++itSource)
+	for (auto itSource = this->threePermSource.begin(); itSource != this->threePermSource.end(); ++itSource)
 	{
-		for (auto itTarget = this->threePermSource.begin(); itTarget != this->threePermSource.begin(); ++itTarget)
+		for (auto itTarget = this->threePermTarget.begin(); itTarget != this->threePermTarget.end(); ++itTarget)
 		{
 			PairOfStemGroups tempPair(*itTarget, *itSource);
 			this->pairsOfStemTriplets.push_back(tempPair);
 		}
 	}
 }
-void Registration::removePairsWithDissimilarRadius() {}
-void Registration::removePairsWithLowLikelihood() {}
-void Registration::removeHighlyColinearPairs() {}
+
+void Registration::removePairsWithDissimilarRadius()
+{
+	this->pairsOfStemTriplets.erase(
+		std::remove_if(this->pairsOfStemTriplets.begin(), this->pairsOfStemTriplets.end(), diametersNotCorresponding),
+		this->pairsOfStemTriplets.end());
+}
+
+void Registration::sortPairsByLikelihood()
+{
+	this->pairsOfStemTriplets.sort();
+}
+
+void Registration::removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets)
+{
+	triplets.erase(std::remove_if(triplets.begin(), triplets.end(), colinearityGreaterThanTol),
+		triplets.end());
+}
+
+// This removes of non-matching pair of triplets.
+bool diametersNotCorresponding(PairOfStemGroups& pair)
+{
+	return std::find_if(pair.getRadiusSimilarity().begin(), pair.getRadiusSimilarity().end(), diamErrorGreaterThanTol)
+		!= pair.getRadiusSimilarity().end();
+}
+
+// This is used for the removal of non-matching pair of triplets (diametersNotCorresponding).
+bool diamErrorGreaterThanTol(double error)
+{
+	return error > Registration::DIAMETER_ERROR_TOL;
+}
+
+/* This is used to determine if the triplet of stem is too linear, which makes
+   it unfit for the rigid transform. */
+bool colinearityGreaterThanTol(StemTriplet& triplet)
+{
+	return std::get<1>(triplet)[0].real() / (std::get<1>(triplet)[0].real() + std::get<1>(triplet)[1].real())
+		> Registration::LINEARITY_TOL;
+}

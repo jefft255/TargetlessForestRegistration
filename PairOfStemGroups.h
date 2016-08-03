@@ -11,11 +11,16 @@ public:
 	PairOfStemGroups(StemTriplet& targetTriplet, StemTriplet& sourceTriplet);
 	~PairOfStemGroups();
 	double getLikelihood() const;
+	const std::vector<double>& getRadiusSimilarity() const;
+	const Eigen::Matrix4d computeBestTransform();
 	const Eigen::Matrix4d getBestTransform();
 	void addFittingStem(Stem* sourceStem, Stem* targetStem);
+	// To sort by likelihood
+	friend bool operator<(PairOfStemGroups& l, PairOfStemGroups& r);
 
 private:
 	void sortStems();
+	void updateRadiusSimilarity();
 	/* They are only triplet at first. We'll add other stems that fit the model later.
 	These are a copy of the vector created by the Registration class. We need to copy them
 	because differents pair will generate different models, which means in some case we we'll have
@@ -30,6 +35,7 @@ private:
 	compiler won't complain */
 	std::vector<std::complex<double>> eigenValuesTarget;
 	std::vector<std::complex<double>> eigenValuesSource;
+	std::vector<double> radiusSimilarity;
 	Eigen::Matrix4d bestTransform;
 };
 

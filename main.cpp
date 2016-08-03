@@ -1,4 +1,4 @@
-#include "StemMap.h"
+#include "Registration.h"
 
 #include <stdio.h>
 
@@ -14,46 +14,33 @@ int main()
 	Stem souche1(11.2, 21, 43.32, 10);
 	Stem souche2(141.2, 71, 41.32, 15);
 	Stem souche3(-431.2, 21, 43.32, 13);
+	Stem souche4(-100, 23, 43.32, 13);
+	Stem souche5(-150, 21, 43.32, 13);
 
 	map1.addStem(souche1);
 	map1.addStem(souche2);
 	map1.addStem(souche3);
+	map1.addStem(souche4);
+	map1.addStem(souche5);
 
-	// Testing the output
-	std::string strMap1 = map1.strStemMap();
-	std::cout << strMap1;
+	StemMap map2;
+	Stem souche6(21.2, 21, 43.32, 10);
+	Stem souche7(151.2, 71, 41.32, 15);
+	Stem souche8(-421.2, 21, 43.32, 13);
+	Stem souche9(-90, 23, 43.32, 13);
+	Stem souche10(-140, 21, 43.32, 13);
 
-	// Now we can test the rotation
-	// Identity matrix should give us the same stem map
-	StemMap map2 = StemMap(map1);
-	Eigen::Matrix4d transMatrixTest;
-	transMatrixTest << 1, 0, 0, 0,
-					   0, 1, 0, 0,
-					   0, 0, 1, 0,
-					   0, 0, 0, 1;
+	map2.addStem(souche6);
+	map2.addStem(souche7);
+	map2.addStem(souche8);
+	map2.addStem(souche9);
+	map2.addStem(souche10);
 
-	map2.applyTransMatrix(transMatrixTest);
-	// Lets see...
-	if (map1 == map2)
-		std::cout << "Identity rotation succes" << std::endl;
-	else
-		std::cout << "Identity rotation failure" << std::endl;
+	std::cout << "Test initialisation classe Registration" << std::endl;
 
-	transMatrixTest << 1, 43, 2, 11.4321234,
-					   0, 1, 4, -10,
-					   43, 0, 1, 2,
-					   0, 0, 0, 1;
+	Registration reg = Registration(map1, map2);
 
-	map2.applyTransMatrix(transMatrixTest);
-	std::cout << map2.strStemMap();
-	std::cout << "Restoring the original coordinates..." << std::endl;
-	map2.restoreOriginalCoords();
-	std::cout << map2.strStemMap();
-	if (map1 == map2)
-		std::cout << "Success" << std::endl;
-	else
-		std::cout << "Failure. Needs inspection, can be due to very small FP error." << std::endl;
-
+	reg.computeBestTransform();
 
 	int a;
 	std::cin >> a;
