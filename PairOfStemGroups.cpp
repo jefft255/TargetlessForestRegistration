@@ -23,7 +23,8 @@ PairOfStemGroups::~PairOfStemGroups()
 {
 }
 
-double PairOfStemGroups::getLikelihood() const 
+double
+PairOfStemGroups::getLikelihood() const 
 {
 	// TODO. Kelbe ne considere pas les valeurs complexes????? Aussi peut etre que
 	// utiliser la troisieme valeur propre pourrait etre utile. A voir.
@@ -36,7 +37,8 @@ double PairOfStemGroups::getLikelihood() const
 	will determine if another stem is common to the two maps. If so we'll add it
 	in each stem group and rerun the registration for better accuracy.
 */
-void PairOfStemGroups::addFittingStem(Stem* sourceStem, Stem* targetStem)
+void
+PairOfStemGroups::addFittingStem(Stem* sourceStem, Stem* targetStem)
 {
 	this->sourceGroup.push_back(sourceStem);
 	this->targetGroup.push_back(targetStem);
@@ -45,13 +47,15 @@ void PairOfStemGroups::addFittingStem(Stem* sourceStem, Stem* targetStem)
 }
 
 // Return the previously computed best transform
-const Eigen::Matrix4d PairOfStemGroups::getBestTransform()
+const Eigen::Matrix4d
+PairOfStemGroups::getBestTransform()
 {
 	return this->bestTransform;
 }
 
 // Compute the best transform between the pair and returns it
-const Eigen::Matrix4d PairOfStemGroups::computeBestTransform()
+const Eigen::Matrix4d
+PairOfStemGroups::computeBestTransform()
 {
 	// Compute the centroids
 	Eigen::Vector3d pbar;
@@ -101,13 +105,15 @@ const Eigen::Matrix4d PairOfStemGroups::computeBestTransform()
 }
 
 // Sort the stem groups by the DBH
-void PairOfStemGroups::sortStems()
+void
+PairOfStemGroups::sortStems()
 {
 	std::sort(this->sourceGroup.begin(), this->sourceGroup.end(), sortStemPointers);
 	std::sort(this->targetGroup.begin(), this->targetGroup.end(), sortStemPointers);
 }
 
-void PairOfStemGroups::updateRadiusSimilarity()
+void
+PairOfStemGroups::updateRadiusSimilarity()
 {
 	std::vector<double> result;
 	for (unsigned int i = 0; i < this->sourceGroup.size(); ++i)
@@ -120,32 +126,37 @@ void PairOfStemGroups::updateRadiusSimilarity()
 	this->radiusSimilarity = result;
 }
 
-const std::vector<double>& PairOfStemGroups::getRadiusSimilarity() const
+// The registration algorithm will use this to determine if the pair matches or not.
+const std::vector<double>&
+PairOfStemGroups::getRadiusSimilarity() const
 {
 	return this->radiusSimilarity;
 }
 
-bool operator<(PairOfStemGroups& l, PairOfStemGroups& r)
+bool
+operator<(PairOfStemGroups& l, PairOfStemGroups& r)
 {
 	return l.getLikelihood() < r.getLikelihood();
 }
 
 // Compute the "average" point of a group of stems. Used in the least square solving.
-void getCentroid(std::vector<Stem*> group, Eigen::Vector3d& centroid)
+void
+getCentroid(std::vector<Stem*> group, Eigen::Vector3d& centroid)
 {
 	centroid << 0, 0, 0;
-	for (auto it = group.begin(); it != group.end(); it++)
+	for (auto& it : group)
 	{
-		centroid(0) += (*it)->getCoords()(0);
-		centroid(1) += (*it)->getCoords()(1);
-		centroid(2) += (*it)->getCoords()(2);
+		centroid(0) += it->getCoords()(0);
+		centroid(1) += it->getCoords()(1);
+		centroid(2) += it->getCoords()(2);
 	}
 	centroid = (float(1) / float(group.size()))*centroid;
 }
 
 /* This is an auxilliary function to sort the vector of stems using
    the DBH */
-bool sortStemPointers(Stem* stem1, Stem* stem2)
+bool
+sortStemPointers(Stem* stem1, Stem* stem2)
 {
 	return stem1->getRadius() < stem2->getRadius();
 }
