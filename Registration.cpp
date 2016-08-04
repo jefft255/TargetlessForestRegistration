@@ -1,9 +1,10 @@
 #include "Registration.h"
 #include <unordered_set>
+#include <set>
 
 // Helper functions declaration
 double getMeanOfVector(Eigen::Vector4d& coords);
-std::vector<std::unordered_set<int>> nCombk(const int n, const int k);
+std::vector<std::set<int>> nCombk(const int n, const int k);
 bool diametersNotCorresponding(PairOfStemGroups& pair);
 bool diamErrorGreaterThanTol(double error);
 bool colinearityGreaterThanTol(StemTriplet& triplet);
@@ -51,20 +52,20 @@ int Factorial(int n)
 /* Found on stackoverflow, user Vaughn Cato. I used his permutation function to
 generate combinations.
 http://stackoverflow.com/questions/28711797/generating-n-choose-k-permutations-in-c */
-std::vector<std::unordered_set<int>> nCombk(const int n, const int k)
+std::vector<std::set<int>> nCombk(const int n, const int k)
 {
-	std::vector<std::unordered_set<int>> result;
+	std::vector<std::set<int>> resultP;
 	std::vector<int> d(n);
 	std::iota(d.begin(), d.end(), 1);
 	int repeat = Factorial(n - k);
 	do
 	{
-		std::unordered_set<int> tempPerm = {};
+		std::set<int> tempPerm = {};
 		for (int i = 0; i < k; i++)
 		{
 			tempPerm.insert(d[i]);
 		}
-		result.push_back(tempPerm);
+		resultP.push_back(tempPerm);
 		for (int i = 1; i != repeat; ++i)
 		{
 			next_permutation(d.begin(), d.end());
@@ -72,9 +73,23 @@ std::vector<std::unordered_set<int>> nCombk(const int n, const int k)
 	} while (next_permutation(d.begin(), d.end()));
 
 	// Remove the duplicate (without order), we want combinations not permutations.
-	std::unique(result.begin(), result.end());
+	std::vector<std::set<int>> resultC;
+	bool permAlreadyThere = false;
+	for (auto& perm : resultP)
+	{
+		for (auto& comb : resultC)
+		{
+			if (perm == comb)
+			{
+				permAlreadyThere = true;
+				break;
+			}
+		}
+		if (!permAlreadyThere) resultC.push_back(perm);
+		permAlreadyThere = false;
+	}
 
-	return result;
+	return resultC;
 }
 
 void Registration::generateEigenValues(StemTriplet& triplet)
@@ -102,13 +117,13 @@ void Registration::generateEigenValues(StemTriplet& triplet)
 
 void Registration::generateAllEigenValues()
 {
-	for (auto it = this->threePermSource.begin(); it != this->threePermSource.end(); ++it)
+	for (auto& it : threePermSource)
 	{
-		this->generateEigenValues(*it);
+		this->generateEigenValues(it);
 	}
-	for (auto it = this->threePermTarget.begin(); it != this->threePermTarget.end(); ++it)
+	for (auto& it : threePermTarget)
 	{
-		this->generateEigenValues(*it);
+		this->generateEigenValues(it);
 	}
 }
 
@@ -122,7 +137,7 @@ double getMeanOfVector(Eigen::Vector4d& coords)
    We use the nPerm function to determine all the possible combinations. */
 void Registration::generateTriplets(StemMap& stemMap, std::vector<StemTriplet>& threePerm)
 {
-	std::vector<std::unordered_set<int>> threePermN = nCombk(stemMap.getStems().size(), 3);
+	std::vector<std::set<int>> threePermN = nCombk(stemMap.getStems().size(), 3);
 	StemTriplet tempTriplet = StemTriplet();
 	// -1 because the combinations start at 1 instead of 0.
 	for (auto it = threePermN.begin(); it != threePermN.end(); ++it)
