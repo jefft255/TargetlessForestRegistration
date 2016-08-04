@@ -24,12 +24,12 @@ Stem::~Stem()
 {
 }
 
-void Stem::changeCoords(Eigen::Matrix4d const &transMatrix)
+void Stem::changeCoords(Eigen::Matrix4d const& transMatrix)
 {
 	this->coords = transMatrix*this->coords;
 }
 
-Eigen::Vector4d Stem::getCoords() const
+const Eigen::Vector4d& Stem::getCoords() const
 {
 	return this->coords;
 }

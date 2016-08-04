@@ -3,7 +3,7 @@
 #include <set>
 
 // Helper functions declaration
-double getMeanOfVector(Eigen::Vector4d& coords);
+double getMeanOfVector(const Eigen::Vector4d& coords);
 std::vector<std::set<int>> nCombk(const int n, const int k);
 bool diametersNotCorresponding(PairOfStemGroups& pair);
 bool diamErrorGreaterThanTol(double error);
@@ -33,6 +33,9 @@ Registration::computeBestTransform()
 		auto printTransform = it.computeBestTransform();
 		std::cout << printTransform << std::endl << std::endl;
 	}
+	this->pairsOfStemTriplets.sort();
+	std::cout << "====== Best transform ======" << std::endl;
+	std::cout << this->pairsOfStemTriplets.begin()->getBestTransform();
 }
 
 
@@ -135,7 +138,7 @@ Registration::generateAllEigenValues()
 
 // This is useful for computing the covariance matrix.
 double
-getMeanOfVector(Eigen::Vector4d& coords)
+getMeanOfVector(const Eigen::Vector4d& coords)
 {
 	return (coords[0] + coords[1] + coords[2]) / 3;
 }

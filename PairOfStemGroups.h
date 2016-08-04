@@ -8,15 +8,17 @@ typedef std::pair<std::vector<Stem*>, std::vector<std::complex<double>>> StemTri
 class PairOfStemGroups
 {
 public:
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW // Fixes wierd memory crashes
 	PairOfStemGroups(StemTriplet& targetTriplet, StemTriplet& sourceTriplet);
 	~PairOfStemGroups();
 	double getLikelihood() const;
 	const std::vector<double>& getRadiusSimilarity() const;
-	const Eigen::Matrix4d computeBestTransform();
-	const Eigen::Matrix4d getBestTransform();
+	Eigen::Matrix4d computeBestTransform();
+	Eigen::Matrix4d getBestTransform() const;
 	void addFittingStem(Stem* sourceStem, Stem* targetStem);
-	// To sort by likelihood
+	// To sort by likelihood, and if the transform is computed sort by MSE
 	friend bool operator<(PairOfStemGroups& l, PairOfStemGroups& r);
+	double meanSquareError();
 
 private:
 	void sortStems();
@@ -36,6 +38,10 @@ private:
 	std::vector<std::complex<double>> eigenValuesTarget;
 	std::vector<std::complex<double>> eigenValuesSource;
 	std::vector<double> radiusSimilarity;
-	Eigen::Matrix4d bestTransform;
+	/* This is sadly necessary because of alignement issues in Eigen. Declaring
+	the transorm matrix as dynamically sized instead of 4x4 fixes bugs with matrix
+	operations in MSVSC++ 2013 */
+	Eigen::MatrixXd bestTransform;
+	bool transformComputed;
 };
 

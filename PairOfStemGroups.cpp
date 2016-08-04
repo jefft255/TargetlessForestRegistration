@@ -12,7 +12,8 @@ PairOfStemGroups::PairOfStemGroups(StemTriplet& targetTriplet, StemTriplet& sour
 	eigenValuesTarget(std::get<1>(targetTriplet)),
 	targetGroup(std::get<0>(targetTriplet)),
 	sourceGroup(std::get<0>(sourceTriplet)),
-	bestTransform(Eigen::Matrix4d::Identity())
+	bestTransform(Eigen::Matrix4d::Identity()),
+	transformComputed(false)
 {
 	this->sortStems();
 	this->updateRadiusSimilarity();
@@ -40,67 +41,70 @@ PairOfStemGroups::getLikelihood() const
 void
 PairOfStemGroups::addFittingStem(Stem* sourceStem, Stem* targetStem)
 {
+	// The new stem is both in the target scan and the source scan.
 	this->sourceGroup.push_back(sourceStem);
 	this->targetGroup.push_back(targetStem);
+	// Update attributes
 	this->sortStems();
 	this->updateRadiusSimilarity();
 }
 
 // Return the previously computed best transform
-const Eigen::Matrix4d
-PairOfStemGroups::getBestTransform()
+Eigen::Matrix4d
+PairOfStemGroups::getBestTransform() const
 {
 	return this->bestTransform;
 }
 
 // Compute the best transform between the pair and returns it
-const Eigen::Matrix4d
+Eigen::Matrix4d
 PairOfStemGroups::computeBestTransform()
 {
-	// Compute the centroids
+	// Declarations
 	Eigen::Vector3d pbar;
-	getCentroid(this->sourceGroup, pbar);
-	std::cout << "pbar: " << std::endl << pbar << std::endl;
 	Eigen::Vector3d qbar;
-	getCentroid(this->targetGroup, qbar);
-	std::cout << "qbar: " << std::endl << qbar << std::endl;
-
-	// Center the points and generate the covariance matrix
 	Eigen::MatrixXd X;
 	Eigen::MatrixXd Yt;
+	Eigen::MatrixXd S;
+	Eigen::MatrixXd matricePourTrouverR;
+	Eigen::MatrixXd matricePourSavoirDet;
+	Eigen::Matrix3d R;
+	Eigen::Vector3d t;
+
+	// Compute the centroids
+	getCentroid(this->targetGroup, qbar);
+	getCentroid(this->sourceGroup, pbar);
+
+	// Center the points and generate the covariance matrix
 	X.resize(3, this->sourceGroup.size());
 	Yt.resize(this->sourceGroup.size(), 3);
 
 	for (unsigned int i = 0; i < this->sourceGroup.size(); ++i)
 	{
-		X(0, i) = this->sourceGroup[i]->getCoords()(0) - pbar(0);
-		X(1, i) = this->sourceGroup[i]->getCoords()(0) - pbar(1);
-		X(2, i) = this->sourceGroup[i]->getCoords()(0) - pbar(2);
+		X(0, i)  = this->sourceGroup[i]->getCoords()(0) - pbar(0);
+		X(1, i)  = this->sourceGroup[i]->getCoords()(0) - pbar(1);
+		X(2, i)  = this->sourceGroup[i]->getCoords()(0) - pbar(2);
 		Yt(i, 0) = this->targetGroup[i]->getCoords()(0) - qbar(0);
 		Yt(i, 1) = this->targetGroup[i]->getCoords()(0) - qbar(1);
 		Yt(i, 2) = this->targetGroup[i]->getCoords()(0) - qbar(2);
 	}
 
-	std::cout << "X: " << std::endl << X << std::endl;
-	std::cout << "Yt: " << std::endl << Yt << std::endl;
-
-	Eigen::MatrixXd S = X*Yt;
-	std::cout << "S: " << std::endl << S << std::endl;
-	Eigen::JacobiSVD<Eigen::MatrixXd> svd(S, Eigen::ComputeFullU | Eigen::ComputeFullV);
-	Eigen::MatrixXd matricePourTrouverR = Eigen::MatrixXd::Identity(this->sourceGroup.size(), this->sourceGroup.size());
-	Eigen::MatrixXd matricePourSavoirDet = svd.matrixV()*svd.matrixU().transpose();
-	std::cout << "matricePourSavoirDet: " << std::endl << matricePourSavoirDet << std::endl;
+	S = X*Yt;
+	Eigen::JacobiSVD<Eigen::MatrixXd>
+		svd(S, Eigen::ComputeFullU | Eigen::ComputeFullV);
+	matricePourTrouverR = Eigen::MatrixXd::Identity(this->sourceGroup.size(), this->sourceGroup.size());
+	matricePourSavoirDet = svd.matrixV()*svd.matrixU().transpose();
 	matricePourTrouverR(this->sourceGroup.size()-1, this->sourceGroup.size()-1) = matricePourSavoirDet.determinant();
-	std::cout << "matricePourTrouverR: " << std::endl << matricePourTrouverR << std::endl;
-	Eigen::Matrix3d R = svd.matrixV()*matricePourTrouverR*svd.matrixU().transpose();
-	Eigen::Vector3d t = qbar - R*pbar;
+	R = svd.matrixV()*matricePourTrouverR*svd.matrixU().transpose();
+	t = qbar - R*pbar;
 
 	// Generate the 4x4 transform matrix from the result
-	Eigen::Matrix4d optimalTransform;
 	this->bestTransform << R(0, 0), R(0, 1), R(0, 2), t(0),
 						R(1, 0), R(1, 1), R(1, 2), t(1),
 						R(2, 0), R(2, 1), R(2, 2), t(2),
 						0,       0,       0,       1;
+	this->transformComputed = true;
+	std::cout << this->meanSquareError() << std::endl;
 	return this->bestTransform;
 }
 
@@ -133,10 +137,32 @@ PairOfStemGroups::getRadiusSimilarity() const
 	return this->radiusSimilarity;
 }
 
+double
+PairOfStemGroups::meanSquareError()
+{
+	double MSE = 0;
+	Eigen::Vector4d stemError;
+	for (unsigned int i = 0; i < this->targetGroup.size(); ++i)
+	{
+		stemError = this->targetGroup[i]->getCoords() - this->bestTransform*(this->sourceGroup[i]->getCoords());
+		MSE += pow(stemError.norm(), 2);
+	}
+
+	return MSE;
+}
+
+/* If the transform are not computed, sorted by the likelihood
+   that the groups match. If the transform is computed then
+   sort by the MSE of the transform which is a way better
+   indicator of the correspondence of the group.
+*/
 bool
 operator<(PairOfStemGroups& l, PairOfStemGroups& r)
 {
-	return l.getLikelihood() < r.getLikelihood();
+	if (l.transformComputed && r.transformComputed)
+		return l.meanSquareError() < r.meanSquareError();
+	else
+		return l.getLikelihood() < r.getLikelihood();
 }
 
 // Compute the "average" point of a group of stems. Used in the least square solving.

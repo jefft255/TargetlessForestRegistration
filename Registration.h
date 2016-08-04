@@ -11,6 +11,7 @@ typedef std::pair<std::vector<Stem*>, std::vector<std::complex<double>>> StemTri
 class Registration
 {
 public:
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 	Registration(StemMap& target, StemMap& source);
 	~Registration();
 	void computeBestTransform();

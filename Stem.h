@@ -13,7 +13,7 @@ public:
 	~Stem();
 	void changeCoords(Eigen::Matrix4d const &transMatrix);
 	// Getters and setters
-	Eigen::Vector4d getCoords() const;
+	const Eigen::Vector4d& getCoords() const;
 	void setCoords(const Eigen::Vector4d &coords);
 	double getRadius() const;
 	void setRadius(const double& radius);
