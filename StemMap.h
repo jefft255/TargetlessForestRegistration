@@ -13,6 +13,8 @@ public:
 	StemMap();
 	StemMap(const StemMap& stemMap);
 	~StemMap();
+
+	void loadStemMapFile(std::string path);
 	void applyTransMatrix(const Eigen::Matrix4d& transMatrix);
 	void addStem(Stem& stem);
 	void restoreOriginalCoords();

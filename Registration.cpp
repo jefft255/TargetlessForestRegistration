@@ -5,6 +5,7 @@
 // Helper functions declaration
 double getMeanOfVector(const Eigen::Vector4d& coords);
 std::vector<std::set<int>> nCombk(const int n, const int k);
+std::vector<std::set<int>> threeCombkV2(const unsigned int k);
 bool diametersNotCorresponding(PairOfStemGroups& pair);
 bool diamErrorGreaterThanTol(double error);
 bool colinearityGreaterThanTol(StemTriplet& triplet);
@@ -43,10 +44,10 @@ Registration::~Registration()
 {
 }
 
-int
+long long
 Factorial(int n)
 {
-	int result = 1;
+	long long result = 1;
 	while (n>1) {
 		result *= n--;
 	}
@@ -54,6 +55,31 @@ Factorial(int n)
 }
 
 
+std::vector<std::set<int>>
+threeCombkV2(const unsigned int k)
+{
+	std::vector<std::set<int>> result;
+	std::set<int> comb;
+
+	for (unsigned int i = 1; i < k - 1; ++i)
+	{
+		for (unsigned int j = i; j < k; ++j)
+		{
+			for (unsigned int s = j; s <= k; ++s)
+			{
+				comb.insert(i);
+				comb.insert(j);
+				comb.insert(s);
+				// Only add combinaison if the numbers are unique
+				if (comb.size() == 3)
+					result.push_back(comb);
+				comb = std::set<int>();
+			}
+		}
+	}
+
+	return result;
+}
 
 /* Found on stackoverflow, user Vaughn Cato. I used his permutation function to
 generate combinations.
@@ -64,16 +90,16 @@ nCombk(const int n, const int k)
 	std::vector<std::set<int>> resultP;
 	std::vector<int> d(n);
 	std::iota(d.begin(), d.end(), 1);
-	int repeat = Factorial(n - k);
+	long long repeat = Factorial(n - k);
 	do
 	{
 		std::set<int> tempPerm = {};
-		for (int i = 0; i < k; i++)
+		for (long long i = 0; i < k; i++)
 		{
 			tempPerm.insert(d[i]);
 		}
 		resultP.push_back(tempPerm);
-		for (int i = 1; i != repeat; ++i)
+		for (long long i = 1; i != repeat; ++i)
 		{
 			next_permutation(d.begin(), d.end());
 		}
@@ -148,7 +174,7 @@ getMeanOfVector(const Eigen::Vector4d& coords)
 void
 Registration::generateTriplets(StemMap& stemMap, std::vector<StemTriplet>& threePerm)
 {
-	std::vector<std::set<int>> threePermN = nCombk(stemMap.getStems().size(), 3);
+	std::vector<std::set<int>> threePermN = threeCombkV2(stemMap.getStems().size());
 	StemTriplet tempTriplet = StemTriplet();
 	
 	for (auto it : threePermN)

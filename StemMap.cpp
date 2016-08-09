@@ -1,4 +1,9 @@
 #include "StemMap.h"
+#include <fstream>
+#include <sstream>
+
+void split(const std::string &s, char delim, std::vector<std::string> &elems);
+std::vector<std::string> split(const std::string &s, char delim);
 
 StemMap::StemMap()
 {
@@ -67,3 +72,47 @@ StemMap::getStems()
 {
 	return this->stems;
 }
+
+void
+StemMap::loadStemMapFile(std::string path)
+{
+	std::ifstream stemMapFile(path);
+	std::string line;
+	Stem tempStem;
+	int i = 0;
+
+	while (std::getline(stemMapFile, line))
+	{
+		if (i > 0) { // Skip header
+			std::vector<std::string> lineData = split(line, ';');
+			tempStem = Stem(
+				std::stod(lineData[2]),
+				std::stod(lineData[3]),
+				std::stod(lineData[4]),
+				std::stod(lineData[5])
+				);
+			this->addStem(tempStem);
+		}
+		++i;
+	}
+}
+
+/*
+Stack overflow code for splitting string
+Used in StemMap::loadStemMapFile
+*/
+void split(const std::string &s, char delim, std::vector<std::string> &elems) {
+	std::stringstream ss(s);
+	std::string item;
+	while (std::getline(ss, item, delim)) {
+		elems.push_back(item);
+	}
+}
+
+
+std::vector<std::string> split(const std::string &s, char delim) {
+	std::vector<std::string> elems;
+	split(s, delim, elems);
+	return elems;
+}
+// End of stackoverflow code
