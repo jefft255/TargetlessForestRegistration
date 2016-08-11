@@ -1,6 +1,7 @@
 #include "Registration.h"
 #include <unordered_set>
 #include <set>
+#include <atomic>
 
 // Helper functions declaration
 double getMeanOfVector(const Eigen::Vector4d& coords);
@@ -9,13 +10,11 @@ std::vector<std::set<int>> threeCombkV2(const unsigned int k);
 bool diametersNotCorresponding(PairOfStemGroups& pair);
 bool diamErrorGreaterThanTol(double error);
 bool colinearityGreaterThanTol(StemTriplet& triplet);
-// Define radius error tolerance here, as well as the thresold for colinear data
-const double Registration::DIAMETER_ERROR_TOL = 0.2;
-const double Registration::LINEARITY_TOL = 0.975;
 
 // Getting ready for RANSAC, no heavy computation yet.
 Registration::Registration(StemMap& target, StemMap& source) : target(target), source(source)
 {
+	std::cout << "Nbr de souche toute seule : " << this->removeLonelyStems() << std::endl;
 	this->generateTriplets(this->source, this->threePermSource);
 	this->generateTriplets(this->target, this->threePermTarget);
 	this->generateAllEigenValues();
@@ -42,6 +41,72 @@ Registration::computeBestTransform()
 
 Registration::~Registration()
 {
+}
+
+unsigned int
+Registration::removeLonelyStems()
+{
+	bool toBeRemoved;
+	std::vector<size_t> indicesToRemove = {};
+	unsigned int nRemoved = 0;
+	size_t i = 0;
+	for (auto& itSource : this->source.getStems())
+	{
+		toBeRemoved = true;
+		for (auto& itTarget : this->target.getStems())
+		{
+			if (!diamErrorGreaterThanTol(
+				abs(itSource.getRadius() - itTarget.getRadius())
+				))
+			{
+				toBeRemoved = false;
+				std::cout << "Erreur assez petite : " << itSource.getRadius() - itTarget.getRadius() << std::endl;
+			}
+		}
+		if (toBeRemoved)
+		{
+			indicesToRemove.push_back(i);
+			++nRemoved;
+		}
+		++i;
+	}
+
+	// Remove the stems backward so the indices are not all shuffled up
+	for (size_t j = indicesToRemove.size() - 1; j > 0; --j)
+	{
+		this->source.getStems().erase(this->source.getStems().begin() + indicesToRemove[j]);
+	}
+
+	// Repeat for the target map
+	indicesToRemove = {};
+	i = 0;
+	for (auto& itTarget : this->target.getStems())
+	{
+		toBeRemoved = true;
+		for (auto& itSource : this->source.getStems())
+		{
+			if (!diamErrorGreaterThanTol(
+				abs(itSource.getRadius() - itTarget.getRadius())
+				))
+			{
+				toBeRemoved = false;
+				std::cout << "Erreur assez petite : " << itSource.getRadius() - itTarget.getRadius() << std::endl;
+			}
+		}
+		if (toBeRemoved)
+		{
+			indicesToRemove.push_back(i);
+			++nRemoved;
+		}
+		++i;
+	}
+
+	// Remove the stems backward so the indices are not all shuffled up
+	for (size_t j = indicesToRemove.size() - 1; j > 0; --j)
+	{
+		this->target.getStems().erase(this->target.getStems().begin() + indicesToRemove[j]);
+	}
+	return nRemoved;
 }
 
 long long
@@ -233,7 +298,7 @@ diametersNotCorresponding(PairOfStemGroups& pair)
 bool
 diamErrorGreaterThanTol(double error)
 {
-	return error > Registration::DIAMETER_ERROR_TOL;
+	return error > DIAMETER_ERROR_TOL;
 }
 
 /* This is used to determine if the triplet of stem is too linear, which makes
@@ -242,5 +307,5 @@ bool
 colinearityGreaterThanTol(StemTriplet& triplet)
 {
 	return std::get<1>(triplet)[0].real() / (std::get<1>(triplet)[0].real() + std::get<1>(triplet)[1].real())
-		> Registration::LINEARITY_TOL;
+		> LINEARITY_TOL;
 }

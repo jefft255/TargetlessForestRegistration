@@ -116,6 +116,7 @@ PairOfStemGroups::sortStems()
 	std::sort(this->targetGroup.begin(), this->targetGroup.end(), sortStemPointers);
 }
 
+// TODO That's the absolute error as opposed to Kelbe's algorithm. TO CORRECT!! RELATIVE ERROR IS BETTER
 void
 PairOfStemGroups::updateRadiusSimilarity()
 {
@@ -123,8 +124,7 @@ PairOfStemGroups::updateRadiusSimilarity()
 	for (unsigned int i = 0; i < this->sourceGroup.size(); ++i)
 	{
 		result.push_back(abs(
-			(this->sourceGroup[i]->getRadius() - this->targetGroup[i]->getRadius()) /
-			((this->sourceGroup[i]->getRadius() + this->targetGroup[i]->getRadius()) / 2)
+			this->sourceGroup[i]->getRadius() - this->targetGroup[i]->getRadius()
 			));
 	}
 	this->radiusSimilarity = result;

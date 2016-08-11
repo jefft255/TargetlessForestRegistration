@@ -14,7 +14,7 @@ int main()
 	map1.loadStemMapFile("C:/Users/Jean-Francois/OneDrive/Stage_labo_foret_numerique/Donnees_JFC/scan_parcelle/1-1stemMapParite2.csv");
 
 	StemMap map2;
-	map2.loadStemMapFile("C:/Users/Jean-Francois/OneDrive/Stage_labo_foret_numerique/Donnees_JFC/scan_parcelle/1-2stemMapPartie2.csv");
+	map2.loadStemMapFile("C:/Users/Jean-Francois/OneDrive/Stage_labo_foret_numerique/Donnees_JFC/scan_parcelle/1-3stemMapPartie2.csv");
 
 
 	std::cout << "Test initialisation classe Registration" << std::endl;

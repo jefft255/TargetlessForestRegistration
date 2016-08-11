@@ -6,6 +6,10 @@
 #include <numeric>
 #include <list>
 
+// Define radius error tolerance here, as well as the thresold for colinear data
+#define DIAMETER_ERROR_TOL 0.0001f;
+#define LINEARITY_TOL 0.975f;
+
 typedef std::pair<std::vector<Stem*>, std::vector<std::complex<double>>> StemTriplet;
 
 class Registration
@@ -15,10 +19,9 @@ public:
 	Registration(StemMap& target, StemMap& source);
 	~Registration();
 	void computeBestTransform();
-	static const double DIAMETER_ERROR_TOL;
-	static const double LINEARITY_TOL;
 
 private:
+	unsigned int removeLonelyStems();
 	void generateTriplets(StemMap& stemMap, std::vector<StemTriplet>& threePerm);
 	void generatePairs();
 	void generateAllEigenValues();
