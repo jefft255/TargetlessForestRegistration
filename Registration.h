@@ -6,8 +6,7 @@
 #include <numeric>
 #include <list>
 
-// Define radius error tolerance here, as well as the thresold for colinear data
-#define DIAMETER_ERROR_TOL 0.015
+// Define thresold for colinear data
 #define LINEARITY_TOL 0.975
 
 typedef std::pair<std::vector<Stem*>, std::vector<std::complex<double>>> StemTriplet;
@@ -16,7 +15,7 @@ class Registration
 {
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-	Registration(StemMap& target, StemMap& source);
+	Registration(StemMap& target, StemMap& source, double diamErrorTol);
 	~Registration();
 	void computeBestTransform();
 
@@ -26,10 +25,14 @@ private:
 	unsigned int generatePairs();
 	void generateAllEigenValues();
 	void generateEigenValues(StemTriplet& triplet);
-	void removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets);
-	void removePairsWithDissimilarRadius();
+	void removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets);	
 	void sortPairsByLikelihood();
+	// This removes of non-matching pair of triplets.
+	bool diametersNotCorresponding(PairOfStemGroups& pair);
+	// This is used for the removal of non-matching pair of triplets (diametersNotCorresponding).
+	bool diamErrorGreaterThanTol(double error);
 
+	double diamErrorTol;
 	StemMap target;
 	StemMap source;
 	/* These two attributes contains, for each stem map, every way to choose
@@ -42,6 +45,6 @@ private:
 	/* Contains all possible combinaison of 2 triplets of trees, one from the target
 	and another from the source. Used list because we are going to be deleting
 	a lot of pairs as we go along. */
-	std::list<PairOfStemGroups> pairsOfStemTriplets;
+	std::vector<PairOfStemGroups> pairsOfStemTriplets;
 };
 

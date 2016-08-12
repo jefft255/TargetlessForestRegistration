@@ -12,7 +12,7 @@ bool diamErrorGreaterThanTol(double error);
 bool colinearityGreaterThanTol(StemTriplet& triplet);
 
 // Getting ready for RANSAC, no heavy computation yet.
-Registration::Registration(StemMap& target, StemMap& source) : target(target), source(source)
+Registration::Registration(StemMap& target, StemMap& source, double diamErrorTol) : target(target), source(source), diamErrorTol(diamErrorTol)
 {
 	std::cout << "Nbr de souche toute seule : " << this->removeLonelyStems() << std::endl;
 	std::cout << "Generation des triplets... " << std::endl;
@@ -22,8 +22,7 @@ Registration::Registration(StemMap& target, StemMap& source) : target(target), s
 	this->removeHighlyColinearTriplets(this->threePermSource);
 	this->removeHighlyColinearTriplets(this->threePermTarget);
 	std::cout << "Generation des pairs de triplet... " << std::endl;
-	this->generatePairs();
-	this->removePairsWithDissimilarRadius();
+	this->generatePairs();	
 	std::cout << this->pairsOfStemTriplets.size() << " de transformation a calculer. " << std::endl;
 	this->sortPairsByLikelihood();
 }
@@ -32,12 +31,13 @@ void
 Registration::computeBestTransform()
 {
 	std::cout << "Calcul des transformations... " << std::endl;
-	for (auto& it : this->pairsOfStemTriplets)
+	#pragma omp parallel for
+	for (size_t i = 0; i < this->pairsOfStemTriplets.size(); ++i)
 	{
-		it.computeBestTransform();
+		this->pairsOfStemTriplets[i].computeBestTransform();
 		// std::cout << printTransform << std::endl << std::endl;
 	}
-	this->pairsOfStemTriplets.sort();
+	std::sort(this->pairsOfStemTriplets.begin(), this->pairsOfStemTriplets.end());
 	std::cout << "====== Best transform ======" << std::endl
 		<< this->pairsOfStemTriplets.begin()->getBestTransform() << std::endl
 		<< "MSE : " << this->pairsOfStemTriplets.begin()->meanSquareError() << std::endl
@@ -75,7 +75,7 @@ Registration::removeLonelyStems()
 		toBeRemoved = true;
 		for (auto& itTarget : this->target.getStems())
 		{
-			if (!diamErrorGreaterThanTol(
+			if (!this->diamErrorGreaterThanTol(
 				(fabs(itSource.getRadius() - itTarget.getRadius()) /
 				((itSource.getRadius() + itTarget.getRadius())/2))
 				))
@@ -107,7 +107,7 @@ Registration::removeLonelyStems()
 		toBeRemoved = true;
 		for (auto& itSource : this->source.getStems())
 		{
-			if (!diamErrorGreaterThanTol(
+			if (!this->diamErrorGreaterThanTol(
 				fabs(itSource.getRadius() - itTarget.getRadius())
 				))
 			{
@@ -285,7 +285,7 @@ Registration::generatePairs()
 		for (size_t j = 0; j < this->threePermTarget.size(); ++j)
 		{
 			PairOfStemGroups tempPair(this->threePermTarget[j], this->threePermSource[i]);
-			if(!diametersNotCorresponding(tempPair))
+			if(!this->diametersNotCorresponding(tempPair))
 			{	
 				#pragma omp critical
 				{
@@ -304,17 +304,9 @@ Registration::generatePairs()
 }
 
 void
-Registration::removePairsWithDissimilarRadius()
-{
-	this->pairsOfStemTriplets.erase(
-		std::remove_if(this->pairsOfStemTriplets.begin(), this->pairsOfStemTriplets.end(), diametersNotCorresponding),
-		this->pairsOfStemTriplets.end());
-}
-
-void
 Registration::sortPairsByLikelihood()
 {
-	this->pairsOfStemTriplets.sort();
+	std::sort(this->pairsOfStemTriplets.begin(), this->pairsOfStemTriplets.end());
 }
 
 void
@@ -326,17 +318,20 @@ Registration::removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets)
 
 // This removes of non-matching pair of triplets.
 bool
-diametersNotCorresponding(PairOfStemGroups& pair)
+Registration::diametersNotCorresponding(PairOfStemGroups& pair)
 {
-	return std::find_if(pair.getRadiusSimilarity().begin(), pair.getRadiusSimilarity().end(), diamErrorGreaterThanTol)
-		!= pair.getRadiusSimilarity().end();
+	for(it : pair.getRadiusSimilarity())
+	{
+		if(this->diamErrorGreaterThanTol(it)) return true;
+	}
+	return false;
 }
 
 // This is used for the removal of non-matching pair of triplets (diametersNotCorresponding).
 bool
-diamErrorGreaterThanTol(double error)
+Registration::diamErrorGreaterThanTol(double error)
 {
-	return error > DIAMETER_ERROR_TOL;
+	return error > this->diamErrorTol;
 }
 
 /* This is used to determine if the triplet of stem is too linear, which makes
