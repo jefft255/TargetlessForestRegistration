@@ -15,6 +15,8 @@ public:
 	const std::vector<double>& getRadiusSimilarity() const;
 	Eigen::Matrix4d computeBestTransform();
 	Eigen::Matrix4d getBestTransform() const;
+	const std::vector<Stem*> getTargetGroup() const;
+	const std::vector<Stem*> getSourceGroup() const;
 	void addFittingStem(Stem* sourceStem, Stem* targetStem);
 	// To sort by likelihood, and if the transform is computed sort by MSE
 	friend bool operator<(PairOfStemGroups& l, PairOfStemGroups& r);

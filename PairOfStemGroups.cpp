@@ -104,7 +104,6 @@ PairOfStemGroups::computeBestTransform()
 						R(2, 0), R(2, 1), R(2, 2), t(2),
 						0,       0,       0,       1;
 	this->transformComputed = true;
-	std::cout << this->meanSquareError() << std::endl;
 	return this->bestTransform;
 }
 
@@ -123,9 +122,9 @@ PairOfStemGroups::updateRadiusSimilarity()
 	std::vector<double> result;
 	for (unsigned int i = 0; i < this->sourceGroup.size(); ++i)
 	{
-		result.push_back(abs(
+		result.push_back(fabs(
 			this->sourceGroup[i]->getRadius() - this->targetGroup[i]->getRadius()
-			));
+			)/((this->sourceGroup[i]->getRadius() + this->targetGroup[i]->getRadius())/2));
 	}
 	this->radiusSimilarity = result;
 }
@@ -135,6 +134,18 @@ const std::vector<double>&
 PairOfStemGroups::getRadiusSimilarity() const
 {
 	return this->radiusSimilarity;
+}
+
+const std::vector<Stem*>
+PairOfStemGroups::getTargetGroup() const
+{
+	return this->targetGroup;
+}
+
+const std::vector<Stem*>
+PairOfStemGroups::getSourceGroup() const
+{
+        return this->sourceGroup;
 }
 
 double

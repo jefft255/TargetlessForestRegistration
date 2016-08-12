@@ -15,27 +15,47 @@ bool colinearityGreaterThanTol(StemTriplet& triplet);
 Registration::Registration(StemMap& target, StemMap& source) : target(target), source(source)
 {
 	std::cout << "Nbr de souche toute seule : " << this->removeLonelyStems() << std::endl;
+	std::cout << "Generation des triplets... " << std::endl;
 	this->generateTriplets(this->source, this->threePermSource);
 	this->generateTriplets(this->target, this->threePermTarget);
 	this->generateAllEigenValues();
 	this->removeHighlyColinearTriplets(this->threePermSource);
 	this->removeHighlyColinearTriplets(this->threePermTarget);
+	std::cout << "Generation des pairs de triplet... " << std::endl;
 	this->generatePairs();
 	this->removePairsWithDissimilarRadius();
+	std::cout << this->pairsOfStemTriplets.size() << " de transformation a calculer. " << std::endl;
 	this->sortPairsByLikelihood();
 }
 
 void
 Registration::computeBestTransform()
 {
+	std::cout << "Calcul des transformations... " << std::endl;
 	for (auto& it : this->pairsOfStemTriplets)
 	{
-		auto printTransform = it.computeBestTransform();
-		std::cout << printTransform << std::endl << std::endl;
+		it.computeBestTransform();
+		// std::cout << printTransform << std::endl << std::endl;
 	}
 	this->pairsOfStemTriplets.sort();
-	std::cout << "====== Best transform ======" << std::endl;
-	std::cout << this->pairsOfStemTriplets.begin()->getBestTransform();
+	std::cout << "====== Best transform ======" << std::endl
+		<< this->pairsOfStemTriplets.begin()->getBestTransform() << std::endl
+		<< "MSE : " << this->pairsOfStemTriplets.begin()->meanSquareError() << std::endl
+		<< "------ Candidats pour l'alignements -----" << std::endl
+		<< "Target : " << std::endl
+		<< "Stem 1 : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[0]->getCoords()
+		<< std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[0]->getRadius() << std::endl
+		<< "Stem 2 : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[1]->getCoords()
+                << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[1]->getRadius() << std::endl
+		<< "Stem 3 : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[2]->getCoords()
+                << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[2]->getRadius() << std::endl
+		<< "Source : " << std::endl
+                << "Stem 1 : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[0]->getCoords()
+                << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[0]->getRadius() << std::endl
+                << "Stem 2 : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[1]->getCoords()
+                << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[1]->getRadius() << std::endl
+                << "Stem 3 : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[2]->getCoords()
+                << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[2]->getRadius() << std::endl;
 }
 
 
@@ -56,11 +76,11 @@ Registration::removeLonelyStems()
 		for (auto& itTarget : this->target.getStems())
 		{
 			if (!diamErrorGreaterThanTol(
-				abs(itSource.getRadius() - itTarget.getRadius())
+				(fabs(itSource.getRadius() - itTarget.getRadius()) /
+				((itSource.getRadius() + itTarget.getRadius())/2))
 				))
 			{
 				toBeRemoved = false;
-				std::cout << "Erreur assez petite : " << itSource.getRadius() - itTarget.getRadius() << std::endl;
 			}
 		}
 		if (toBeRemoved)
@@ -70,13 +90,15 @@ Registration::removeLonelyStems()
 		}
 		++i;
 	}
-
-	// Remove the stems backward so the indices are not all shuffled up
-	for (size_t j = indicesToRemove.size() - 1; j > 0; --j)
+	// If any stem has to be removed
+	if (indicesToRemove.size() > 0)
 	{
-		this->source.getStems().erase(this->source.getStems().begin() + indicesToRemove[j]);
+		// Remove the stems backward so the indices are not all shuffled up
+		for (size_t j = indicesToRemove.size() - 1; j > 0; --j)
+		{
+			this->source.getStems().erase(this->source.getStems().begin() + indicesToRemove[j]);
+		}
 	}
-
 	// Repeat for the target map
 	indicesToRemove = {};
 	i = 0;
@@ -86,11 +108,10 @@ Registration::removeLonelyStems()
 		for (auto& itSource : this->source.getStems())
 		{
 			if (!diamErrorGreaterThanTol(
-				abs(itSource.getRadius() - itTarget.getRadius())
+				fabs(itSource.getRadius() - itTarget.getRadius())
 				))
 			{
-				toBeRemoved = false;
-				std::cout << "Erreur assez petite : " << itSource.getRadius() - itTarget.getRadius() << std::endl;
+				toBeRemoved = false; 
 			}
 		}
 		if (toBeRemoved)
@@ -100,11 +121,13 @@ Registration::removeLonelyStems()
 		}
 		++i;
 	}
-
-	// Remove the stems backward so the indices are not all shuffled up
-	for (size_t j = indicesToRemove.size() - 1; j > 0; --j)
+	if (indicesToRemove.size() > 0)
 	{
-		this->target.getStems().erase(this->target.getStems().begin() + indicesToRemove[j]);
+		// Remove the stems backward so the indices are not all shuffled up
+		for (size_t j = indicesToRemove.size() - 1; j > 0; --j)
+		{
+			this->target.getStems().erase(this->target.getStems().begin() + indicesToRemove[j]);
+		}
 	}
 	return nRemoved;
 }
@@ -125,7 +148,7 @@ threeCombkV2(const unsigned int k)
 {
 	std::vector<std::set<int>> result;
 	std::set<int> comb;
-
+		
 	for (unsigned int i = 1; i < k - 1; ++i)
 	{
 		for (unsigned int j = i; j < k; ++j)
@@ -252,17 +275,32 @@ Registration::generateTriplets(StemMap& stemMap, std::vector<StemTriplet>& three
 }
 
 // Population the pairOfStemsTriplets attributes with all possible pairs. Cleanup is done later.
-void
+unsigned int
 Registration::generatePairs()
 {
-	for (auto& itSource : this->threePermSource)
+	unsigned int nInvalidPairs = 0;
+	#pragma omp parallel for
+	for (size_t i = 0; i < this->threePermSource.size(); ++i)
 	{
-		for (auto& itTarget : this->threePermTarget)
+		for (size_t j = 0; j < this->threePermTarget.size(); ++j)
 		{
-			PairOfStemGroups tempPair(itTarget, itSource);
-			this->pairsOfStemTriplets.push_back(tempPair);
+			PairOfStemGroups tempPair(this->threePermTarget[j], this->threePermSource[i]);
+			if(!diametersNotCorresponding(tempPair))
+			{	
+				#pragma omp critical
+				{
+					this->pairsOfStemTriplets.push_back(tempPair);
+					//std::cout << "Bingo" << std::endl;
+				}
+				
+			}
+			else
+			{
+			//	nInvalidPairs++;
+			}
 		}
 	}
+	return nInvalidPairs;
 }
 
 void
