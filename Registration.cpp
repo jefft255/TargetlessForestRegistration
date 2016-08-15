@@ -10,6 +10,7 @@ std::vector<std::set<int>> threeCombkV2(const unsigned int k);
 bool diametersNotCorresponding(PairOfStemGroups& pair);
 bool diamErrorGreaterThanTol(double error);
 bool colinearityGreaterThanTol(StemTriplet& triplet);
+bool stemAlreadyInGroup(const Stem& stem, const std::vector<Stem*> group);
 
 // Getting ready for RANSAC, no heavy computation yet.
 Registration::Registration(StemMap& target, StemMap& source, double diamErrorTol) : target(target), source(source), diamErrorTol(diamErrorTol)
@@ -19,12 +20,12 @@ Registration::Registration(StemMap& target, StemMap& source, double diamErrorTol
 	this->generateTriplets(this->source, this->threePermSource);
 	this->generateTriplets(this->target, this->threePermTarget);
 	this->generateAllEigenValues();
-	this->removeHighlyColinearTriplets(this->threePermSource);
-	this->removeHighlyColinearTriplets(this->threePermTarget);
+	//this->removeHighlyColinearTriplets(this->threePermSource);
+	//this->removeHighlyColinearTriplets(this->threePermTarget);
 	std::cout << "Generation des pairs de triplet... " << std::endl;
 	this->generatePairs();	
-	std::cout << this->pairsOfStemTriplets.size() << " de transformation a calculer. " << std::endl;
-	this->sortPairsByLikelihood();
+	std::cout << this->pairsOfStemTriplets.size() << " transformations a calculer. " << std::endl;
+	//this->sortPairsByLikelihood(); A voir la pertinence
 }
 
 void
@@ -35,12 +36,16 @@ Registration::computeBestTransform()
 	for (size_t i = 0; i < this->pairsOfStemTriplets.size(); ++i)
 	{
 		this->pairsOfStemTriplets[i].computeBestTransform();
+		//this->RANSACtransform(this->pairsOfStemTriplets[i]);
 		// std::cout << printTransform << std::endl << std::endl;
 	}
+	std::cout << "Tri des resultats" << std::endl;
 	std::sort(this->pairsOfStemTriplets.begin(), this->pairsOfStemTriplets.end());
+	
 	std::cout << "====== Best transform ======" << std::endl
 		<< this->pairsOfStemTriplets.begin()->getBestTransform() << std::endl
-		<< "MSE : " << this->pairsOfStemTriplets.begin()->meanSquareError() << std::endl
+		<< "MSE : " << this->pairsOfStemTriplets.begin()->getMeanSquareError() << std::endl
+		<< "Nombre de souches utilisees : " << this->pairsOfStemTriplets.begin()->getTargetGroup().size() << std::endl
 		<< "------ Candidats pour l'alignements -----" << std::endl
 		<< "Target : " << std::endl
 		<< "Stem 1 : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[0]->getCoords()
@@ -56,6 +61,47 @@ Registration::computeBestTransform()
                 << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[1]->getRadius() << std::endl
                 << "Stem 3 : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[2]->getCoords()
                 << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[2]->getRadius() << std::endl;
+}
+
+void
+Registration::RANSACtransform(PairOfStemGroups& pair)
+{	
+	StemMap sourceCopy;
+	Eigen::Vector4d stemError;
+	bool keepGoing = true;
+
+	while(keepGoing)
+	{
+		keepGoing = false;
+		sourceCopy = StemMap(this->source);
+		sourceCopy.applyTransMatrix(pair.getBestTransform());
+
+		for(size_t i = 0; i < sourceCopy.getStems().size(); ++i)
+		{
+			for(size_t j = 0; j < this->target.getStems().size(); ++j)
+			{
+				stemError = this->target.getStems()[j].getCoords()
+					- sourceCopy.getStems()[i].getCoords();
+				if(stemError.norm() < 0.3 &&
+					!stemAlreadyInGroup(this->target.getStems()[j], pair.getTargetGroup()))
+				{
+					// We add the stem who was not transformed
+					pair.addFittingStem(&this->source.getStems()[i], &this->target.getStems()[j]);
+					keepGoing = true;
+				}	
+			}
+		}	
+		if(keepGoing) pair.computeBestTransform();
+	}	
+}
+
+bool stemAlreadyInGroup(const Stem& stem, const std::vector<Stem*> group)
+{
+	for(const auto it : group)
+	{
+		if(stem.getCoords() == it->getCoords()) return true;
+	}
+	return false;
 }
 
 
@@ -320,7 +366,7 @@ Registration::removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets)
 bool
 Registration::diametersNotCorresponding(PairOfStemGroups& pair)
 {
-	for(it : pair.getRadiusSimilarity())
+	for(auto& it : pair.getRadiusSimilarity())
 	{
 		if(this->diamErrorGreaterThanTol(it)) return true;
 	}

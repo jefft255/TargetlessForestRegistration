@@ -1,8 +1,6 @@
 #pragma once
 
-#include "StemMap.h"
 #include "PairOfStemGroups.h"
-#include <algorithm>
 #include <numeric>
 #include <list>
 
@@ -31,6 +29,7 @@ private:
 	bool diametersNotCorresponding(PairOfStemGroups& pair);
 	// This is used for the removal of non-matching pair of triplets (diametersNotCorresponding).
 	bool diamErrorGreaterThanTol(double error);
+	void RANSACtransform(PairOfStemGroups& pair);
 
 	double diamErrorTol;
 	StemMap target;

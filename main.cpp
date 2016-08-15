@@ -19,10 +19,24 @@ int main()
         std::cin >> diamErrorTol;
 	
 	Eigen::Matrix4d rotStemMap2;
-	rotStemMap2 << 0.224, -0.974, 0, 10.133,
-			0.974, 0.2264, 0, 6.096,
-			0, 0, 1, -1.378,
-			0, 0, 0, 1;
+	rotStemMap2 << 0.224, -0.974, 0, -3.6436,
+                        0.974, 0.2264, 0, 11.25,
+                        0, 0, 1, -1.378,
+                        0, 0, 0, 1;
+
+
+	Eigen::Matrix4d rotStemMap3;
+        rotStemMap3 << 0.224, -0.974, 0, -3.6436,
+                        0.974, 0.2264, 0, 11.25,
+                        0, 0, 1, -1.378,
+                        0, 0, 0, 1;
+
+	Eigen::Matrix4d rotStemMap4;
+        rotStemMap4 << 0.224, -0.974, 0, -3.6426,
+                        0.974, 0.2264, 0, 11.25,
+                        0, 0, 1, -1.378,
+                        0, 0, 0, 1;
+
 
 	StemMap map1;
 	map1.loadStemMapFile("/home/jeff/TLR/1-1stemMapPartie2.csv", minDiam);
@@ -33,10 +47,12 @@ int main()
 
 	StemMap map3;
         map3.loadStemMapFile("/home/jeff/TLR/1-3stemMapPartie2.csv", minDiam);
+	map3.applyTransMatrix(rotStemMap3);
 
 	StemMap map4;
         map4.loadStemMapFile("/home/jeff/TLR/1-4stemMapPartie2.csv", minDiam);
-	
+	map4.applyTransMatrix(rotStemMap4);
+
 	std::cout << "-------------------------------------DEBUT 1-2 vers 1-1" << std::endl;
 	
 	clock_t start = clock();

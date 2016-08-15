@@ -1,7 +1,7 @@
 #include "PairOfStemGroups.h"
 #include <Eigen/Eigenvalues>
 #include <math.h>
-#include <algorithm>
+
 
 // Helper functions declarations
 void getCentroid(std::vector<Stem*> group, Eigen::Vector3d& centroid);
@@ -82,19 +82,19 @@ PairOfStemGroups::computeBestTransform()
 	for (unsigned int i = 0; i < this->sourceGroup.size(); ++i)
 	{
 		X(0, i)  = this->sourceGroup[i]->getCoords()(0) - pbar(0);
-		X(1, i)  = this->sourceGroup[i]->getCoords()(0) - pbar(1);
-		X(2, i)  = this->sourceGroup[i]->getCoords()(0) - pbar(2);
+		X(1, i)  = this->sourceGroup[i]->getCoords()(1) - pbar(1);
+		X(2, i)  = this->sourceGroup[i]->getCoords()(2) - pbar(2);
 		Yt(i, 0) = this->targetGroup[i]->getCoords()(0) - qbar(0);
-		Yt(i, 1) = this->targetGroup[i]->getCoords()(0) - qbar(1);
-		Yt(i, 2) = this->targetGroup[i]->getCoords()(0) - qbar(2);
+		Yt(i, 1) = this->targetGroup[i]->getCoords()(1) - qbar(1);
+		Yt(i, 2) = this->targetGroup[i]->getCoords()(2) - qbar(2);
 	}
 
 	S = X*Yt;
 	Eigen::JacobiSVD<Eigen::MatrixXd>
 		svd(S, Eigen::ComputeFullU | Eigen::ComputeFullV);
-	matricePourTrouverR = Eigen::MatrixXd::Identity(this->sourceGroup.size(), this->sourceGroup.size());
+	matricePourTrouverR = Eigen::MatrixXd::Identity(3, 3);
 	matricePourSavoirDet = svd.matrixV()*svd.matrixU().transpose();
-	matricePourTrouverR(this->sourceGroup.size()-1, this->sourceGroup.size()-1) = matricePourSavoirDet.determinant();
+	matricePourTrouverR(2, 2) = matricePourSavoirDet.determinant();
 	R = svd.matrixV()*matricePourTrouverR*svd.matrixU().transpose();
 	t = qbar - R*pbar;
 
@@ -104,6 +104,7 @@ PairOfStemGroups::computeBestTransform()
 						R(2, 0), R(2, 1), R(2, 2), t(2),
 						0,       0,       0,       1;
 	this->transformComputed = true;
+	this->updateMeanSquareError();
 	return this->bestTransform;
 }
 
@@ -149,7 +150,7 @@ PairOfStemGroups::getSourceGroup() const
 }
 
 double
-PairOfStemGroups::meanSquareError()
+PairOfStemGroups::updateMeanSquareError()
 {
 	double MSE = 0;
 	Eigen::Vector4d stemError;
@@ -159,7 +160,13 @@ PairOfStemGroups::meanSquareError()
 		MSE += pow(stemError.norm(), 2);
 	}
 
-	return MSE;
+	this->meanSquareError = MSE;
+}
+
+double
+PairOfStemGroups::getMeanSquareError()
+{
+	return this->meanSquareError;
 }
 
 /* If the transform are not computed, sorted by the likelihood
@@ -171,7 +178,7 @@ bool
 operator<(PairOfStemGroups& l, PairOfStemGroups& r)
 {
 	if (l.transformComputed && r.transformComputed)
-		return l.meanSquareError() < r.meanSquareError();
+		return l.getMeanSquareError() < r.getMeanSquareError();
 	else
 		return l.getLikelihood() < r.getLikelihood();
 }

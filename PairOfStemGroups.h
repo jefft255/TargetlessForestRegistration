@@ -1,6 +1,6 @@
 #pragma once
 
-#include <algorithm>
+
 #include "StemMap.h"
 
 typedef std::pair<std::vector<Stem*>, std::vector<std::complex<double>>> StemTriplet;
@@ -20,11 +20,12 @@ public:
 	void addFittingStem(Stem* sourceStem, Stem* targetStem);
 	// To sort by likelihood, and if the transform is computed sort by MSE
 	friend bool operator<(PairOfStemGroups& l, PairOfStemGroups& r);
-	double meanSquareError();
+	double getMeanSquareError();
 
 private:
 	void sortStems();
 	void updateRadiusSimilarity();
+	double updateMeanSquareError();
 	/* They are only triplet at first. We'll add other stems that fit the model later.
 	These are a copy of the vector created by the Registration class. We need to copy them
 	because differents pair will generate different models, which means in some case we we'll have
@@ -35,6 +36,7 @@ private:
 	std::vector<Stem*> targetGroup;
 	std::vector<Stem*> sourceGroup;
 	double likelihood;
+	double meanSquareError;
 	/* They should be real but I put a complex type this way the
 	compiler won't complain */
 	std::vector<std::complex<double>> eigenValuesTarget;
