@@ -2,8 +2,12 @@
 #include <fstream>
 #include <sstream>
 
-void split(const std::string &s, char delim, std::vector<std::string> &elems);
-std::vector<std::string> split(const std::string &s, char delim);
+
+namespace tlr
+{
+	
+void Split(const std::string &s, char delim, std::vector<std::string> &elems);
+std::vector<std::string> Split(const std::string &s, char delim);
 
 StemMap::StemMap()
 {
@@ -11,10 +15,11 @@ StemMap::StemMap()
 	this->transMatrix = Eigen::Matrix4d::Identity(); // No transform applied yet
 }
 
-StemMap::StemMap(const StemMap &stemMap)
+StemMap::StemMap(const StemMap& stemMap)
 {
-	this->stems = stemMap.stems;
-	this->transMatrix = stemMap.transMatrix;
+	this->stems =
+		std::vector<Stem,Eigen::aligned_allocator<Eigen::Vector4f>>(stemMap.stems);
+	this->transMatrix = Eigen::Matrix4d(stemMap.transMatrix);
 }
 
 StemMap::~StemMap()
@@ -22,15 +27,21 @@ StemMap::~StemMap()
 }
 
 void
-StemMap::applyTransMatrix(Eigen::Matrix4d const &transMatrix)
+StemMap::applyTransMatrix(const Eigen::Matrix4d& transMatrix)
 {
 	// Could gain significant speedup from parralelization
-	for (auto it : this->stems)
+	for (auto& it : this->stems)
 	{
 		it.changeCoords(transMatrix);
 	}
 
 	this->transMatrix *= transMatrix; // We store the transformation
+}
+
+void
+StemMap::removeStem(size_t indice)
+{
+	this->stems.erase(this->stems.begin() + indice);
 }
 
 void
@@ -64,17 +75,18 @@ StemMap::strStemMap() const
 bool
 StemMap::operator==(const StemMap &stemMap) const
 {
-	return stemMap.stems == this->stems && stemMap.transMatrix == this->transMatrix;
+	return stemMap.stems == this->stems &&
+		   stemMap.transMatrix == this->transMatrix;
 }
 
-std::vector<Stem, Eigen::aligned_allocator<Eigen::Vector4f>>&
-StemMap::getStems()
+const std::vector<Stem, Eigen::aligned_allocator<Eigen::Vector4f>>&
+StemMap::getStems() const
 {
 	return this->stems;
 }
 
 void
-StemMap::loadStemMapFile(std::string path)
+StemMap::loadStemMapFile(std::string path, double minDiam)
 {
 	std::ifstream stemMapFile(path);
 	std::string line;
@@ -84,14 +96,17 @@ StemMap::loadStemMapFile(std::string path)
 	while (std::getline(stemMapFile, line))
 	{
 		if (i > 0) { // Skip header
-			std::vector<std::string> lineData = split(line, ';');
-			tempStem = Stem(
-				std::stod(lineData[2]),
-				std::stod(lineData[3]),
-				std::stod(lineData[4]),
-				std::stod(lineData[5])
-				);
-			this->addStem(tempStem);
+			std::vector<std::string> lineData = Split(line, ';');
+			if(std::stod(lineData[5]) > minDiam)
+			{
+				tempStem = Stem(
+					std::stod(lineData[2]),
+					std::stod(lineData[3]),
+					std::stod(lineData[4]),
+					std::stod(lineData[5])
+					);
+				this->addStem(tempStem);
+			}
 		}
 		++i;
 	}
@@ -101,7 +116,9 @@ StemMap::loadStemMapFile(std::string path)
 Stack overflow code for splitting string
 Used in StemMap::loadStemMapFile
 */
-void split(const std::string &s, char delim, std::vector<std::string> &elems) {
+void
+Split(const std::string &s, char delim, std::vector<std::string> &elems)
+{
 	std::stringstream ss(s);
 	std::string item;
 	while (std::getline(ss, item, delim)) {
@@ -110,9 +127,13 @@ void split(const std::string &s, char delim, std::vector<std::string> &elems) {
 }
 
 
-std::vector<std::string> split(const std::string &s, char delim) {
+std::vector<std::string>
+Split(const std::string &s, char delim)
+{
 	std::vector<std::string> elems;
-	split(s, delim, elems);
+	Split(s, delim, elems);
 	return elems;
 }
 // End of stackoverflow code
+
+} // namespace tlr

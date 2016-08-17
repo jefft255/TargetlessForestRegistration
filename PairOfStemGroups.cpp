@@ -2,12 +2,16 @@
 #include <Eigen/Eigenvalues>
 #include <math.h>
 
-
+namespace tlr 
+{
+	
 // Helper functions declarations
-void getCentroid(std::vector<Stem*> group, Eigen::Vector3d& centroid);
-bool sortStemPointers(Stem* stem1, Stem* stem2);
+void GetCentroid(const std::vector<const Stem*> group,
+				 Eigen::Vector3d& centroid);
+bool SortStemPointers(const Stem* stem1, const Stem* stem2);
 
-PairOfStemGroups::PairOfStemGroups(StemTriplet& targetTriplet, StemTriplet& sourceTriplet) :
+PairOfStemGroups::PairOfStemGroups(StemTriplet& targetTriplet,
+								   StemTriplet& sourceTriplet) :
 	eigenValuesSource(std::get<1>(sourceTriplet)),
 	eigenValuesTarget(std::get<1>(targetTriplet)),
 	targetGroup(std::get<0>(targetTriplet)),
@@ -29,8 +33,10 @@ PairOfStemGroups::getLikelihood() const
 {
 	// TODO. Kelbe ne considere pas les valeurs complexes????? Aussi peut etre que
 	// utiliser la troisieme valeur propre pourrait etre utile. A voir.
-	return pow(this->eigenValuesTarget[0].real() - this->eigenValuesSource[0].real(),2) +
-		pow(this->eigenValuesTarget[1].real() - this->eigenValuesSource[1].real(),2);
+	return pow(this->eigenValuesTarget[0].real() -
+		   this->eigenValuesSource[0].real(),2)  +
+		   pow(this->eigenValuesTarget[1].real() -
+		   this->eigenValuesSource[1].real(),2);
 }
 
 /*
@@ -39,13 +45,13 @@ PairOfStemGroups::getLikelihood() const
 	in each stem group and rerun the registration for better accuracy.
 */
 void
-PairOfStemGroups::addFittingStem(Stem* sourceStem, Stem* targetStem)
+PairOfStemGroups::addFittingStem(const Stem* sourceStem, const Stem* targetStem)
 {
 	// The new stem is both in the target scan and the source scan.
 	this->sourceGroup.push_back(sourceStem);
 	this->targetGroup.push_back(targetStem);
 	// Update attributes
-	this->sortStems();
+	// this->sortStems();
 	this->updateRadiusSimilarity();
 }
 
@@ -72,8 +78,8 @@ PairOfStemGroups::computeBestTransform()
 	Eigen::Vector3d t;
 
 	// Compute the centroids
-	getCentroid(this->targetGroup, qbar);
-	getCentroid(this->sourceGroup, pbar);
+	GetCentroid(this->targetGroup, qbar);
+	GetCentroid(this->sourceGroup, pbar);
 
 	// Center the points and generate the covariance matrix
 	X.resize(3, this->sourceGroup.size());
@@ -112,11 +118,10 @@ PairOfStemGroups::computeBestTransform()
 void
 PairOfStemGroups::sortStems()
 {
-	std::sort(this->sourceGroup.begin(), this->sourceGroup.end(), sortStemPointers);
-	std::sort(this->targetGroup.begin(), this->targetGroup.end(), sortStemPointers);
+	std::sort(this->sourceGroup.begin(), this->sourceGroup.end(), SortStemPointers);
+	std::sort(this->targetGroup.begin(), this->targetGroup.end(), SortStemPointers);
 }
 
-// TODO That's the absolute error as opposed to Kelbe's algorithm. TO CORRECT!! RELATIVE ERROR IS BETTER
 void
 PairOfStemGroups::updateRadiusSimilarity()
 {
@@ -137,13 +142,13 @@ PairOfStemGroups::getRadiusSimilarity() const
 	return this->radiusSimilarity;
 }
 
-const std::vector<Stem*>
+const std::vector<const Stem*>
 PairOfStemGroups::getTargetGroup() const
 {
 	return this->targetGroup;
 }
 
-const std::vector<Stem*>
+const std::vector<const Stem*>
 PairOfStemGroups::getSourceGroup() const
 {
         return this->sourceGroup;
@@ -156,7 +161,8 @@ PairOfStemGroups::updateMeanSquareError()
 	Eigen::Vector4d stemError;
 	for (unsigned int i = 0; i < this->targetGroup.size(); ++i)
 	{
-		stemError = this->targetGroup[i]->getCoords() - this->bestTransform*(this->sourceGroup[i]->getCoords());
+		stemError = this->targetGroup[i]->getCoords()
+			- this->bestTransform*(this->sourceGroup[i]->getCoords());
 		MSE += pow(stemError.norm(), 2);
 	}
 
@@ -164,7 +170,7 @@ PairOfStemGroups::updateMeanSquareError()
 }
 
 double
-PairOfStemGroups::getMeanSquareError()
+PairOfStemGroups::getMeanSquareError() const
 {
 	return this->meanSquareError;
 }
@@ -178,14 +184,19 @@ bool
 operator<(PairOfStemGroups& l, PairOfStemGroups& r)
 {
 	if (l.transformComputed && r.transformComputed)
-		return l.getMeanSquareError() < r.getMeanSquareError();
+	{
+		if (l.getSourceGroup().size() == r.getTargetGroup().size())
+			return l.getMeanSquareError() < r.getMeanSquareError();
+		else
+			return l.getSourceGroup().size() > r.getSourceGroup().size();
+	}
 	else
 		return l.getLikelihood() < r.getLikelihood();
 }
 
 // Compute the "average" point of a group of stems. Used in the least square solving.
 void
-getCentroid(std::vector<Stem*> group, Eigen::Vector3d& centroid)
+GetCentroid(const std::vector<const Stem*> group, Eigen::Vector3d& centroid)
 {
 	centroid << 0, 0, 0;
 	for (auto& it : group)
@@ -200,7 +211,9 @@ getCentroid(std::vector<Stem*> group, Eigen::Vector3d& centroid)
 /* This is an auxilliary function to sort the vector of stems using
    the DBH */
 bool
-sortStemPointers(Stem* stem1, Stem* stem2)
+SortStemPointers(const Stem* stem1, const Stem* stem2)
 {
 	return stem1->getRadius() < stem2->getRadius();
 }
+
+} // namespace tlr

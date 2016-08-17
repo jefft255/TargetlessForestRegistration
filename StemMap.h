@@ -1,10 +1,13 @@
-#pragma once
+#ifndef TLR_STEMMAP_H_
+#define TLR_STEMMAP_H_
 
-#include <Eigen/Dense>
 #include <Eigen/StdVector>
-#include "Stem.h"
 #include <string>
 #include <iostream>
+#include "Stem.h"
+
+namespace tlr
+{
 
 class StemMap
 {
@@ -14,13 +17,14 @@ public:
 	StemMap(const StemMap& stemMap);
 	~StemMap();
 
-	void loadStemMapFile(std::string path);
+	void loadStemMapFile(std::string path, double minDiam);
 	void applyTransMatrix(const Eigen::Matrix4d& transMatrix);
 	void addStem(Stem& stem);
 	void restoreOriginalCoords();
 	std::string strStemMap() const;
 	bool operator==(const StemMap& stemMap) const;
-	std::vector<Stem, Eigen::aligned_allocator<Eigen::Vector4f>>& getStems();
+	const std::vector<Stem, Eigen::aligned_allocator<Eigen::Vector4f>>& getStems() const;
+	void removeStem(size_t indice);
 
 private:
 	/*
@@ -32,3 +36,5 @@ private:
 	Eigen::Matrix4d transMatrix; // Transformation matrix since the original
 };
 
+} // namespace tlr
+#endif

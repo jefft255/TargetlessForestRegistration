@@ -1,7 +1,11 @@
-#pragma once
+#ifndef TLR_STEM_H_
+#define TLR_STEM_H_
 
 #include <vector>
 #include <Eigen/Dense>
+
+namespace tlr
+{
 
 class Stem
 {
@@ -9,9 +13,9 @@ public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	Stem();
 	Stem(double x, double y, double z, double radius);
-	Stem(const Stem &stem);
+	Stem(const Stem& stem);
 	~Stem();
-	void changeCoords(Eigen::Matrix4d const &transMatrix);
+	void changeCoords(const Eigen::Matrix4d& transMatrix);
 	// Getters and setters
 	const Eigen::Vector4d& getCoords() const;
 	void setCoords(const Eigen::Vector4d &coords);
@@ -28,3 +32,5 @@ private:
 	double radius;
 };
 
+} // namespace tlr
+#endif

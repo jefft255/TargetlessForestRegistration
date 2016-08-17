@@ -1,9 +1,12 @@
-#pragma once
-
+#ifndef TLR_PAIROFSTEMGROUPS_H_
+#define TLR_PAIROFSTEMGROUPS_H_
 
 #include "StemMap.h"
 
-typedef std::pair<std::vector<Stem*>, std::vector<std::complex<double>>> StemTriplet;
+namespace tlr 
+{
+
+typedef std::pair<std::vector<const Stem*>, std::vector<std::complex<double>>> StemTriplet;
 
 class PairOfStemGroups
 {
@@ -15,12 +18,12 @@ public:
 	const std::vector<double>& getRadiusSimilarity() const;
 	Eigen::Matrix4d computeBestTransform();
 	Eigen::Matrix4d getBestTransform() const;
-	const std::vector<Stem*> getTargetGroup() const;
-	const std::vector<Stem*> getSourceGroup() const;
-	void addFittingStem(Stem* sourceStem, Stem* targetStem);
+	const std::vector<const Stem*> getTargetGroup() const;
+	const std::vector<const Stem*> getSourceGroup() const;
+	void addFittingStem(const Stem* sourceStem, const Stem* targetStem);
 	// To sort by likelihood, and if the transform is computed sort by MSE
 	friend bool operator<(PairOfStemGroups& l, PairOfStemGroups& r);
-	double getMeanSquareError();
+	double getMeanSquareError() const;
 
 private:
 	void sortStems();
@@ -33,8 +36,8 @@ private:
 
 	TODO rendre ca plus clair
 	*/
-	std::vector<Stem*> targetGroup;
-	std::vector<Stem*> sourceGroup;
+	std::vector<const Stem*> targetGroup;
+	std::vector<const Stem*> sourceGroup;
 	double likelihood;
 	double meanSquareError;
 	/* They should be real but I put a complex type this way the
@@ -49,3 +52,5 @@ private:
 	bool transformComputed;
 };
 
+} // namespace tlr
+#endif

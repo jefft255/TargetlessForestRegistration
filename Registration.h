@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TLR_REGISTRATION_H_
+#define TLR_REGISTRATION_H_
 
 #include "PairOfStemGroups.h"
 #include <numeric>
@@ -7,20 +8,25 @@
 // Define thresold for colinear data
 #define LINEARITY_TOL 0.975
 
-typedef std::pair<std::vector<Stem*>, std::vector<std::complex<double>>> StemTriplet;
+namespace tlr
+{
+	
+typedef std::pair<std::vector<const Stem*>, std::vector<std::complex<double>>> StemTriplet;
 
 class Registration
 {
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
-	Registration(StemMap& target, StemMap& source, double diamErrorTol);
+	Registration(const StemMap& target, const StemMap& source,
+				 double diamErrorTol, double RANSACtol);
 	~Registration();
 	void computeBestTransform();
 
 private:
 	unsigned int removeLonelyStems();
-	void generateTriplets(StemMap& stemMap, std::vector<StemTriplet>& threePerm);
-	unsigned int generatePairs();
+	void generateTriplets(StemMap& stemMap,
+						  std::vector<StemTriplet>& threePerm);
+	void generatePairs();
 	void generateAllEigenValues();
 	void generateEigenValues(StemTriplet& triplet);
 	void removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets);	
@@ -30,8 +36,13 @@ private:
 	// This is used for the removal of non-matching pair of triplets (diametersNotCorresponding).
 	bool diamErrorGreaterThanTol(double error);
 	void RANSACtransform(PairOfStemGroups& pair);
+	bool stemDistanceGreaterThanTol(const Stem& stem1, const Stem& stem2) const;
+	bool stemAlreadyInGroup(const Stem& stem,
+							const std::vector<const Stem*> group) const;
+	bool relDiamErrorGreaterThanTol(const Stem& stem1, const Stem& stem2) const;
 
 	double diamErrorTol;
+	double RANSACtol;
 	StemMap target;
 	StemMap source;
 	/* These two attributes contains, for each stem map, every way to choose
@@ -47,3 +58,5 @@ private:
 	std::vector<PairOfStemGroups> pairsOfStemTriplets;
 };
 
+} // namespace tlr
+#endif

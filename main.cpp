@@ -1,6 +1,5 @@
-#include "Registration.h"
-
 #include <stdio.h>
+#include "Registration.h"
 
 /*
 main.cpp
@@ -8,16 +7,24 @@ main.cpp
 Va etre utilise pour tester les fonctionnalite donc va changer tres souvents
 des tests plus rigoureux, unitaires, vont etre implmente tres bientot.
 */
-int main()
+int main(int argc, char *argv[])
 {
-	double minDiam;
-	double diamErrorTol;
-        std::cout << "Test alignement des scans a JFC" << std::endl;
-        std::cout << "Entrez le diametre minimum a considerer : ";
-        std::cin >> minDiam;
-	std::cout << "Entrez la tolerance sur l'erreur du DBH : ";
-        std::cin >> diamErrorTol;
-	
+	if(argc != 6)
+	{
+		std::cout << "Bad number of arguments" << std::endl
+			<< "Usage: ./TLR path_source path_target" 
+			<< "minimum_radius radius_error_tol RANSAC_error_tol"
+			<< std::endl;
+		return 1;
+	}
+
+	double minDiam = std::stod(argv[3]);
+	double diamErrorTol = std::stod(argv[4]);
+	double RANSACtol = std::stod(argv[5]);
+	std::string pathSource = argv[1];
+	std::string pathTarget = argv[2];
+
+	// TO BE REMOVED
 	Eigen::Matrix4d rotStemMap2;
 	rotStemMap2 << 0.224, -0.974, 0, -3.6436,
                         0.974, 0.2264, 0, 11.25,
@@ -26,62 +33,35 @@ int main()
 
 
 	Eigen::Matrix4d rotStemMap3;
-        rotStemMap3 << 0.224, -0.974, 0, -3.6436,
-                        0.974, 0.2264, 0, 11.25,
-                        0, 0, 1, -1.378,
+        rotStemMap3 << 1.0338, 0.1516, -0.0002, 4.456,
+                        0.1547, 1.0338, -0.0006, -5.3521,
+                        0.0001, 0.0006, 1, -0.42211,
                         0, 0, 0, 1;
 
 	Eigen::Matrix4d rotStemMap4;
-        rotStemMap4 << 0.224, -0.974, 0, -3.6426,
-                        0.974, 0.2264, 0, 11.25,
-                        0, 0, 1, -1.378,
+        rotStemMap4 << 1, 0, -0.00031, -6.064,
+                        0.00031, 0.00456, 1, 1.185,
+                        0, -1, 0.00456, 4.396,
                         0, 0, 0, 1;
+	// END TO BE REMOVED
 
+	tlr::StemMap mapTarget;
+	mapTarget.loadStemMapFile(pathTarget, minDiam);
 
-	StemMap map1;
-	map1.loadStemMapFile("/home/jeff/TLR/1-1stemMapPartie2.csv", minDiam);
+	tlr::StemMap mapSource;
+	mapSource.loadStemMapFile(pathSource, minDiam);
+	mapSource.applyTransMatrix(rotStemMap2);
 
-	StemMap map2;
-	map2.loadStemMapFile("/home/jeff/TLR/1-2stemMapPartie2.csv", minDiam);
-	map2.applyTransMatrix(rotStemMap2);
-
-	StemMap map3;
-        map3.loadStemMapFile("/home/jeff/TLR/1-3stemMapPartie2.csv", minDiam);
-	map3.applyTransMatrix(rotStemMap3);
-
-	StemMap map4;
-        map4.loadStemMapFile("/home/jeff/TLR/1-4stemMapPartie2.csv", minDiam);
-	map4.applyTransMatrix(rotStemMap4);
-
-	std::cout << "-------------------------------------DEBUT 1-2 vers 1-1" << std::endl;
+	std::cout << "Beginning registration of "
+		<< pathSource << " to " << pathTarget << std::endl;
 	
-	clock_t start = clock();
-	Registration reg = Registration(map1, map2, diamErrorTol);
+	time_t start = time(NULL);
+	tlr::Registration reg = tlr::Registration(mapTarget, mapSource, diamErrorTol, RANSACtol);
 	reg.computeBestTransform();
-	clock_t end = clock();
-	double time = (double) (end-start) / CLOCKS_PER_SEC;
-	std::cout << "FIN 1-2 vers 1-1. Temps total (s) : " << time << std::endl;
-	
-	std::cout << "-------------------------------------DEBUT 1-3 vers 1-1" << std::endl;
+	time_t end = time(NULL);
+	long time = end - start;
 
-	start = clock();
-	reg = Registration(map1, map3, diamErrorTol);
-        reg.computeBestTransform();
-        end = clock();
-        time = (double) (end-start) / CLOCKS_PER_SEC;
-        std::cout << "FIN 1-3 vers 1-1. Temps total (s) : " << time << std::endl;
+	std::cout << "End of registration. Total time (s) : " << time << std::endl;
 
-
-	std::cout << "-------------------------------------DEBUT 1-4 vers 1-1" << std::endl;
-
-	start = clock();
-	reg = Registration(map1, map4, diamErrorTol);
-        reg.computeBestTransform();
-        end = clock();
-        time = (double) (end-start) / CLOCKS_PER_SEC;
-        std::cout << "FIN 1-4 vers 1-1. Temps total (s) : " << time << std::endl;
-
-	int a;
-	std::cin >> a;
 	return 0;
 }
