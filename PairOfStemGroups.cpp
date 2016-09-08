@@ -175,6 +175,26 @@ PairOfStemGroups::getMeanSquareError() const
 	return this->meanSquareError;
 }
 
+const std::vector<double>
+PairOfStemGroups::getEdgeDifference() const
+{
+	std::vector<double> result = {};
+	double edgeLengthSource = 0;
+	double edgeLengthTarget = 0;
+	Eigen::Vector4d sourceVector;
+	Eigen::Vector4d targetVector;
+
+	for(size_t i = 0; i < this->targetGroup.size(); ++i)
+	{
+		size_t next = i == this->targetGroup.size()-1 ? 0 : i + 1;
+		sourceVector = this->sourceGroup[i]->getCoords() - this->sourceGroup[next]->getCoords();
+		targetVector = this->targetGroup[i]->getCoords() - this->targetGroup[next]->getCoords();
+		result.push_back(fabs(sourceVector.norm() - targetVector.norm()));
+	}
+
+	return result;
+}
+
 /* If the transform are not computed, sorted by the likelihood
    that the groups match. If the transform is computed then
    sort by the MSE of the transform which is a way better
@@ -183,15 +203,10 @@ PairOfStemGroups::getMeanSquareError() const
 bool
 operator<(PairOfStemGroups& l, PairOfStemGroups& r)
 {
-	if (l.transformComputed && r.transformComputed)
-	{
-		if (l.getSourceGroup().size() == r.getTargetGroup().size())
-			return l.getMeanSquareError() < r.getMeanSquareError();
-		else
-			return l.getSourceGroup().size() > r.getSourceGroup().size();
-	}
+	if (l.getSourceGroup().size() == r.getTargetGroup().size())
+		return l.getMeanSquareError() < r.getMeanSquareError();
 	else
-		return l.getLikelihood() < r.getLikelihood();
+		return l.getSourceGroup().size() > r.getSourceGroup().size();
 }
 
 // Compute the "average" point of a group of stems. Used in the least square solving.

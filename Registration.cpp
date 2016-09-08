@@ -19,7 +19,9 @@ Registration::Registration(const StemMap& target, const StemMap& source,
 	diamErrorTol(diamErrorTol),
 	RANSACtol(RANSACtol)
 {
-	std::cout << "Number of unmatched stems : " << this->removeLonelyStems() << std::endl;
+	std::cout << "Number of unmatched stems: " << this->removeLonelyStems() << std::endl;
+	std::cout << "Number of stems in source: " << this->source.getStems().size() << std::endl;
+	std::cout << "Number of stems in target: " << this->target.getStems().size() << std::endl;
 	std::cout << "Generating triplets... " << std::endl;
 	this->generateTriplets(this->source, this->threePermSource);
 	this->generateTriplets(this->target, this->threePermTarget);
@@ -314,7 +316,8 @@ Registration::generatePairs()
 			PairOfStemGroups tempPair(this->threePermTarget[j],
 									  this->threePermSource[i]);
 
-			if(!this->diametersNotCorresponding(tempPair))
+			if(!this->diametersNotCorresponding(tempPair)
+			   && this->pairPositionsAreCorresponding(tempPair))
 			{	
 				#pragma omp critical
 				{
@@ -323,12 +326,6 @@ Registration::generatePairs()
 			}
 		}
 	}
-}
-
-void
-Registration::sortPairsByLikelihood()
-{
-	std::sort(this->pairsOfStemTriplets.begin(), this->pairsOfStemTriplets.end());
 }
 
 void
@@ -351,6 +348,17 @@ Registration::diametersNotCorresponding(PairOfStemGroups& pair)
 		if(this->diamErrorGreaterThanTol(it)) return true;
 	}
 	return false;
+}
+
+bool
+Registration::pairPositionsAreCorresponding(PairOfStemGroups& pair)
+{
+	const std::vector<double> edgeDiffs = pair.getEdgeDifference();
+	for(double diff : edgeDiffs)
+	{
+		if(diff > 2*this->RANSACtol) return false;
+	}
+	return true;
 }
 
 // This is used for the removal of non-matching pair of triplets (DiametersNotCorresponding).

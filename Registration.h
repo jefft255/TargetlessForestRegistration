@@ -29,10 +29,10 @@ private:
 	void generatePairs();
 	void generateAllEigenValues();
 	void generateEigenValues(StemTriplet& triplet);
-	void removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets);	
-	void sortPairsByLikelihood();
+	void removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets);
 	// This removes of non-matching pair of triplets.
 	bool diametersNotCorresponding(PairOfStemGroups& pair);
+	bool pairPositionsAreCorresponding(PairOfStemGroups& pair);
 	// This is used for the removal of non-matching pair of triplets (diametersNotCorresponding).
 	bool diamErrorGreaterThanTol(double error);
 	void RANSACtransform(PairOfStemGroups& pair);
