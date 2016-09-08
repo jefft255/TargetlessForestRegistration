@@ -108,6 +108,9 @@ Registration::RANSACtransform(PairOfStemGroups& pair)
 	}	
 }
 
+/* Return true if a stem is already present in a group.
+   This is useful for the RANSAC part.
+*/
 bool
 Registration::stemAlreadyInGroup(const Stem& stem,
 								 const std::vector<const Stem*> group) const
@@ -127,6 +130,7 @@ Registration::stemDistanceGreaterThanTol(const Stem& stem1, const Stem& stem2) c
 	return stemError.norm() > this->RANSACtol;
 }
 
+// Return true if the relative error between two stems is greater than diamErrorTol
 bool
 Registration::relDiamErrorGreaterThanTol(const Stem& stem1, const Stem& stem2) const
 {
@@ -138,6 +142,7 @@ Registration::~Registration()
 {
 }
 
+// Needs refactoring. It does work though
 unsigned int
 Registration::removeLonelyStems()
 {
@@ -216,7 +221,7 @@ Factorial(int n)
 	return result;
 }
 
-
+// Generates all 3 from K combination
 std::vector<std::set<int>>
 ThreeCombK(const unsigned int k)
 {
@@ -339,7 +344,7 @@ Registration::removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets)
 		triplets.end());
 }
 
-// This removes of non-matching pair of triplets.
+// This removes of non-matching (diameter-wise) pair of triplets.
 bool
 Registration::diametersNotCorresponding(PairOfStemGroups& pair)
 {
@@ -350,11 +355,17 @@ Registration::diametersNotCorresponding(PairOfStemGroups& pair)
 	return false;
 }
 
+/* This asserts wether the stems are positioned in the same way relative
+   to each other in both group. How do we do that? We compare the
+   triangle formed by the stems in both group. If a vertice's length
+   is too different than the corresponding vertice in the other group then
+   they don't match.
+*/
 bool
 Registration::pairPositionsAreCorresponding(PairOfStemGroups& pair)
 {
-	const std::vector<double> edgeDiffs = pair.getEdgeDifference();
-	for(double diff : edgeDiffs)
+	const std::vector<double> verticeDiffs = pair.getVerticeDifference();
+	for(double diff : verticeDiffs)
 	{
 		if(diff > 2*this->RANSACtol) return false;
 	}

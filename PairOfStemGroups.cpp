@@ -122,6 +122,7 @@ PairOfStemGroups::sortStems()
 	std::sort(this->targetGroup.begin(), this->targetGroup.end(), SortStemPointers);
 }
 
+// Updates the relative error of diameter between corresponding stems
 void
 PairOfStemGroups::updateRadiusSimilarity()
 {
@@ -175,17 +176,21 @@ PairOfStemGroups::getMeanSquareError() const
 	return this->meanSquareError;
 }
 
+/*
+	This return a vector of length 3. Each element contains the
+	difference between the length of corresponding vertice in each
+	stem group.
+*/
 const std::vector<double>
-PairOfStemGroups::getEdgeDifference() const
+PairOfStemGroups::getVerticeDifference() const
 {
 	std::vector<double> result = {};
-	double edgeLengthSource = 0;
-	double edgeLengthTarget = 0;
 	Eigen::Vector4d sourceVector;
 	Eigen::Vector4d targetVector;
 
 	for(size_t i = 0; i < this->targetGroup.size(); ++i)
 	{
+		// Use the next stem, or the first on if we're at the last.
 		size_t next = i == this->targetGroup.size()-1 ? 0 : i + 1;
 		sourceVector = this->sourceGroup[i]->getCoords() - this->sourceGroup[next]->getCoords();
 		targetVector = this->targetGroup[i]->getCoords() - this->targetGroup[next]->getCoords();
@@ -195,10 +200,8 @@ PairOfStemGroups::getEdgeDifference() const
 	return result;
 }
 
-/* If the transform are not computed, sorted by the likelihood
-   that the groups match. If the transform is computed then
-   sort by the MSE of the transform which is a way better
-   indicator of the correspondence of the group.
+/* We sort by the number of matching stem. If they are equal,
+   then the pair with the lowest MSE comes first.
 */
 bool
 operator<(PairOfStemGroups& l, PairOfStemGroups& r)
