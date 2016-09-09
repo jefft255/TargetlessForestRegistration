@@ -122,6 +122,7 @@ PairOfStemGroups::sortStems()
 	std::sort(this->targetGroup.begin(), this->targetGroup.end(), SortStemPointers);
 }
 
+// Updates the relative error of diameter between corresponding stems
 void
 PairOfStemGroups::updateRadiusSimilarity()
 {
@@ -175,23 +176,40 @@ PairOfStemGroups::getMeanSquareError() const
 	return this->meanSquareError;
 }
 
-/* If the transform are not computed, sorted by the likelihood
-   that the groups match. If the transform is computed then
-   sort by the MSE of the transform which is a way better
-   indicator of the correspondence of the group.
+/*
+	This return a vector of length 3. Each element contains the
+	difference between the length of corresponding vertice in each
+	stem group.
+*/
+const std::vector<double>
+PairOfStemGroups::getVerticeDifference() const
+{
+	std::vector<double> result = {};
+	Eigen::Vector4d sourceVector;
+	Eigen::Vector4d targetVector;
+
+	for(size_t i = 0; i < this->targetGroup.size(); ++i)
+	{
+		// Use the next stem, or the first on if we're at the last.
+		size_t next = i == this->targetGroup.size()-1 ? 0 : i + 1;
+		sourceVector = this->sourceGroup[i]->getCoords() - this->sourceGroup[next]->getCoords();
+		targetVector = this->targetGroup[i]->getCoords() - this->targetGroup[next]->getCoords();
+		result.push_back(fabs(sourceVector.norm() - targetVector.norm()));
+	}
+
+	return result;
+}
+
+/* We sort by the number of matching stem. If they are equal,
+   then the pair with the lowest MSE comes first.
 */
 bool
 operator<(PairOfStemGroups& l, PairOfStemGroups& r)
 {
-	if (l.transformComputed && r.transformComputed)
-	{
-		if (l.getSourceGroup().size() == r.getTargetGroup().size())
-			return l.getMeanSquareError() < r.getMeanSquareError();
-		else
-			return l.getSourceGroup().size() > r.getSourceGroup().size();
-	}
+	if (l.getSourceGroup().size() == r.getTargetGroup().size())
+		return l.getMeanSquareError() < r.getMeanSquareError();
 	else
-		return l.getLikelihood() < r.getLikelihood();
+		return l.getSourceGroup().size() > r.getSourceGroup().size();
 }
 
 // Compute the "average" point of a group of stems. Used in the least square solving.

@@ -19,7 +19,9 @@ Registration::Registration(const StemMap& target, const StemMap& source,
 	diamErrorTol(diamErrorTol),
 	RANSACtol(RANSACtol)
 {
-	std::cout << "Number of unmatched stems : " << this->removeLonelyStems() << std::endl;
+	std::cout << "Number of unmatched stems: " << this->removeLonelyStems() << std::endl;
+	std::cout << "Number of stems in source: " << this->source.getStems().size() << std::endl;
+	std::cout << "Number of stems in target: " << this->target.getStems().size() << std::endl;
 	std::cout << "Generating triplets... " << std::endl;
 	this->generateTriplets(this->source, this->threePermSource);
 	this->generateTriplets(this->target, this->threePermTarget);
@@ -106,6 +108,9 @@ Registration::RANSACtransform(PairOfStemGroups& pair)
 	}	
 }
 
+/* Return true if a stem is already present in a group.
+   This is useful for the RANSAC part.
+*/
 bool
 Registration::stemAlreadyInGroup(const Stem& stem,
 								 const std::vector<const Stem*> group) const
@@ -125,6 +130,7 @@ Registration::stemDistanceGreaterThanTol(const Stem& stem1, const Stem& stem2) c
 	return stemError.norm() > this->RANSACtol;
 }
 
+// Return true if the relative error between two stems is greater than diamErrorTol
 bool
 Registration::relDiamErrorGreaterThanTol(const Stem& stem1, const Stem& stem2) const
 {
@@ -136,6 +142,7 @@ Registration::~Registration()
 {
 }
 
+// Needs refactoring. It does work though
 unsigned int
 Registration::removeLonelyStems()
 {
@@ -214,7 +221,7 @@ Factorial(int n)
 	return result;
 }
 
-
+// Generates all 3 from K combination
 std::vector<std::set<int>>
 ThreeCombK(const unsigned int k)
 {
@@ -314,7 +321,8 @@ Registration::generatePairs()
 			PairOfStemGroups tempPair(this->threePermTarget[j],
 									  this->threePermSource[i]);
 
-			if(!this->diametersNotCorresponding(tempPair))
+			if(!this->diametersNotCorresponding(tempPair)
+			   && this->pairPositionsAreCorresponding(tempPair))
 			{	
 				#pragma omp critical
 				{
@@ -323,12 +331,6 @@ Registration::generatePairs()
 			}
 		}
 	}
-}
-
-void
-Registration::sortPairsByLikelihood()
-{
-	std::sort(this->pairsOfStemTriplets.begin(), this->pairsOfStemTriplets.end());
 }
 
 void
@@ -342,7 +344,7 @@ Registration::removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets)
 		triplets.end());
 }
 
-// This removes of non-matching pair of triplets.
+// This removes of non-matching (diameter-wise) pair of triplets.
 bool
 Registration::diametersNotCorresponding(PairOfStemGroups& pair)
 {
@@ -351,6 +353,23 @@ Registration::diametersNotCorresponding(PairOfStemGroups& pair)
 		if(this->diamErrorGreaterThanTol(it)) return true;
 	}
 	return false;
+}
+
+/* This asserts wether the stems are positioned in the same way relative
+   to each other in both group. How do we do that? We compare the
+   triangle formed by the stems in both group. If a vertice's length
+   is too different than the corresponding vertice in the other group then
+   they don't match.
+*/
+bool
+Registration::pairPositionsAreCorresponding(PairOfStemGroups& pair)
+{
+	const std::vector<double> verticeDiffs = pair.getVerticeDifference();
+	for(double diff : verticeDiffs)
+	{
+		if(diff > 2*this->RANSACtol) return false;
+	}
+	return true;
 }
 
 // This is used for the removal of non-matching pair of triplets (DiametersNotCorresponding).

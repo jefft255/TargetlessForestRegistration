@@ -16,6 +16,7 @@ public:
 	~PairOfStemGroups();
 	double getLikelihood() const;
 	const std::vector<double>& getRadiusSimilarity() const;
+	const std::vector<double> getVerticeDifference() const;
 	Eigen::Matrix4d computeBestTransform();
 	Eigen::Matrix4d getBestTransform() const;
 	const std::vector<const Stem*> getTargetGroup() const;

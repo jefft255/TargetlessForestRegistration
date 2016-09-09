@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 
 	double minDiam = std::stod(argv[3]);
 	double diamErrorTol = std::stod(argv[4]);
-	double RANSACtol = std::stod(argv[5]);
+	double distTol = std::stod(argv[5]);
 	std::string pathSource = argv[1];
 	std::string pathTarget = argv[2];
 
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 		<< pathSource << " to " << pathTarget << std::endl;
 	
 	time_t start = time(NULL);
-	tlr::Registration reg = tlr::Registration(mapTarget, mapSource, diamErrorTol, RANSACtol);
+	tlr::Registration reg = tlr::Registration(mapTarget, mapSource, diamErrorTol, distTol);
 	reg.computeBestTransform();
 	time_t end = time(NULL);
 	long time = end - start;
