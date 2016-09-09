@@ -50,7 +50,6 @@ int main(int argc, char *argv[])
 
 	tlr::StemMap mapSource;
 	mapSource.loadStemMapFile(pathSource, minDiam);
-	mapSource.applyTransMatrix(rotStemMap2);
 
 	std::cout << "Beginning registration of "
 		<< pathSource << " to " << pathTarget << std::endl;

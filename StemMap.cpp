@@ -94,21 +94,18 @@ StemMap::loadStemMapFile(std::string path, double minDiam)
 	int i = 0;
 
 	while (std::getline(stemMapFile, line))
-	{
-		if (i > 0) { // Skip header
-			std::vector<std::string> lineData = Split(line, ';');
-			if(std::stod(lineData[5]) > minDiam)
-			{
-				tempStem = Stem(
-					std::stod(lineData[2]),
-					std::stod(lineData[3]),
-					std::stod(lineData[4]),
-					std::stod(lineData[5])
-					);
-				this->addStem(tempStem);
-			}
+	{	
+		std::vector<std::string> lineData = Split(line, ' ');
+		if(std::stod(lineData[3]) > minDiam)
+		{
+			tempStem = Stem(
+				std::stod(lineData[0]),
+				std::stod(lineData[1]),
+				std::stod(lineData[2]),
+				std::stod(lineData[3])
+				);
+			this->addStem(tempStem);
 		}
-		++i;
 	}
 }
 
