@@ -11,11 +11,7 @@ void GetCentroid(const std::vector<const Stem*> group,
 bool SortStemPointers(const Stem* stem1, const Stem* stem2);
 
 PairOfStemGroups::PairOfStemGroups(StemTriplet& targetTriplet,
-<<<<<<< HEAD
                                    StemTriplet& sourceTriplet) :
-=======
-                                   StemTriplet& sourceTriplet) :
->>>>>>> 44e91495f85b80c1cc2c5dc3736598634cef99f2
   eigenValuesSource(std::get<1>(sourceTriplet)),
   eigenValuesTarget(std::get<1>(targetTriplet)),
   targetGroup(std::get<0>(targetTriplet)),
