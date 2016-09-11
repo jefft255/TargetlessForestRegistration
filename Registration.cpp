@@ -96,12 +96,12 @@ Registration::RANSACtransform(PairOfStemGroups& pair)
       for(size_t j = 0; j < this->target.getStems().size(); ++j)
       {
         if(!this->stemDistanceGreaterThanTol(sourceCopy.getStems()[i],
-           this->target.getStems()[j])
-	   &&
-	   !this->stemAlreadyInGroup(this->target.getStems()[j],
+                                             this->target.getStems()[j])
+	         &&
+	         !this->stemAlreadyInGroup(this->target.getStems()[j],
                                      pair.getTargetGroup())
-	   &&
-	   !this->relDiamErrorGreaterThanTol(this->target.getStems()[j],
+	         &&
+	         !this->relDiamErrorGreaterThanTol(this->target.getStems()[j],
                                              this->source.getStems()[i]))
         {
           // We add the stem who was not transformed
@@ -133,7 +133,7 @@ bool
 Registration::stemDistanceGreaterThanTol(const Stem& stem1, const Stem& stem2) const
 {
   Eigen::Vector4d stemError = stem1.getCoords()
-		            - stem2.getCoords();
+		                          - stem2.getCoords();
   return stemError.norm() > this->RANSACtol;
 }
 
@@ -142,7 +142,7 @@ bool
 Registration::relDiamErrorGreaterThanTol(const Stem& stem1, const Stem& stem2) const
 {
   return fabs(stem1.getRadius() - stem2.getRadius()) /
-    	 ((stem1.getRadius() + stem2.getRadius())/2) < this->diamErrorTol;
+    	   ((stem1.getRadius() + stem2.getRadius())/2) < this->diamErrorTol;
 }
 
 Registration::~Registration()
@@ -194,8 +194,8 @@ Registration::removeLonelyStems()
 		for (auto& itSource : this->source.getStems())
 		{
 			if (!this->relDiamErrorGreaterThanTol(
-				itSource, itTarget
-				))
+				      itSource, itTarget
+				 ))
 			{
 				toBeRemoved = false; 
 			}
@@ -326,7 +326,7 @@ Registration::generatePairs()
 		for (size_t j = 0; j < this->threePermTarget.size(); ++j)
 		{
 			PairOfStemGroups tempPair(this->threePermTarget[j],
-                                                  this->threePermSource[i]);
+                                this->threePermSource[i]);
 
 			if(!this->diametersNotCorresponding(tempPair)
 			   && this->pairPositionsAreCorresponding(tempPair))
@@ -392,8 +392,8 @@ bool
 ColinearityGreaterThanTol(StemTriplet& triplet)
 {
 	return std::get<1>(triplet)[0].real() /
-		(std::get<1>(triplet)[0].real() + std::get<1>(triplet)[1].real())
-		> LINEARITY_TOL;
+		     (std::get<1>(triplet)[0].real() + std::get<1>(triplet)[1].real())
+		     > LINEARITY_TOL;
 }
 
 } // namespace tlr
