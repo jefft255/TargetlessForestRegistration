@@ -11,7 +11,7 @@ void GetCentroid(const std::vector<const Stem*> group,
 bool SortStemPointers(const Stem* stem1, const Stem* stem2);
 
 PairOfStemGroups::PairOfStemGroups(StemTriplet& targetTriplet,
-								   StemTriplet& sourceTriplet) :
+								                   StemTriplet& sourceTriplet) :
 	eigenValuesSource(std::get<1>(sourceTriplet)),
 	eigenValuesTarget(std::get<1>(targetTriplet)),
 	targetGroup(std::get<0>(targetTriplet)),
@@ -34,9 +34,9 @@ PairOfStemGroups::getLikelihood() const
 	// TODO. Kelbe ne considere pas les valeurs complexes????? Aussi peut etre que
 	// utiliser la troisieme valeur propre pourrait etre utile. A voir.
 	return pow(this->eigenValuesTarget[0].real() -
-		   this->eigenValuesSource[0].real(),2)  +
-		   pow(this->eigenValuesTarget[1].real() -
-		   this->eigenValuesSource[1].real(),2);
+		     this->eigenValuesSource[0].real(),2)  +
+		     pow(this->eigenValuesTarget[1].real() -
+		     this->eigenValuesSource[1].real(),2);
 }
 
 /*
@@ -97,7 +97,7 @@ PairOfStemGroups::computeBestTransform()
 
 	S = X*Yt;
 	Eigen::JacobiSVD<Eigen::MatrixXd>
-		svd(S, Eigen::ComputeFullU | Eigen::ComputeFullV);
+  svd(S, Eigen::ComputeFullU | Eigen::ComputeFullV);
 	matricePourTrouverR = Eigen::MatrixXd::Identity(3, 3);
 	matricePourSavoirDet = svd.matrixV()*svd.matrixU().transpose();
 	matricePourTrouverR(2, 2) = matricePourSavoirDet.determinant();
@@ -106,9 +106,9 @@ PairOfStemGroups::computeBestTransform()
 
 	// Generate the 4x4 transform matrix from the result
 	this->bestTransform << R(0, 0), R(0, 1), R(0, 2), t(0),
-						R(1, 0), R(1, 1), R(1, 2), t(1),
-						R(2, 0), R(2, 1), R(2, 2), t(2),
-						0,       0,       0,       1;
+						             R(1, 0), R(1, 1), R(1, 2), t(1),
+						             R(2, 0), R(2, 1), R(2, 2), t(2),
+						            0,       0,       0,       1;
 	this->transformComputed = true;
 	this->updateMeanSquareError();
 	return this->bestTransform;
@@ -152,7 +152,7 @@ PairOfStemGroups::getTargetGroup() const
 const std::vector<const Stem*>
 PairOfStemGroups::getSourceGroup() const
 {
-        return this->sourceGroup;
+  return this->sourceGroup;
 }
 
 double
@@ -163,7 +163,7 @@ PairOfStemGroups::updateMeanSquareError()
 	for (unsigned int i = 0; i < this->targetGroup.size(); ++i)
 	{
 		stemError = this->targetGroup[i]->getCoords()
-			- this->bestTransform*(this->sourceGroup[i]->getCoords());
+			          - this->bestTransform*(this->sourceGroup[i]->getCoords());
 		MSE += pow(stemError.norm(), 2);
 	}
 
