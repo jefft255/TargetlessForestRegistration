@@ -3,7 +3,7 @@
 
 #include "StemMap.h"
 
-namespace tlr 
+namespace tlr
 {
 
 typedef std::pair<std::vector<const Stem*>, std::vector<std::complex<double>>> StemTriplet;

@@ -5,7 +5,7 @@
 
 namespace tlr
 {
-  
+
 // Helper functions declaration
 double GetMeanOfVector(const Eigen::Vector4d& coords);
 std::vector<std::set<int>> NCombK(const int n, const int k);
@@ -29,7 +29,7 @@ Registration::Registration(const StemMap& target, const StemMap& source,
   //this->removeHighlyColinearTriplets(this->threePermSource);
   //this->removeHighlyColinearTriplets(this->threePermTarget);
   std::cout << "Generating pairs of triplets... " << std::endl;
-  this->generatePairs();	
+  this->generatePairs();
   std::cout << this->pairsOfStemTriplets.size() << " transforms to compute. " << std::endl;
   //this->sortPairsByLikelihood(); A voir la pertinence
 }
@@ -76,12 +76,12 @@ void
 Registration::printFinalReport()
 {
   //TODO
-  
+
 }
 
 void
 Registration::RANSACtransform(PairOfStemGroups& pair)
-{	
+{
   StemMap sourceCopy;
   bool keepGoing = true;
 
@@ -108,11 +108,11 @@ Registration::RANSACtransform(PairOfStemGroups& pair)
           pair.addFittingStem(&this->source.getStems()[i],
                               &this->target.getStems()[j]);
           keepGoing = true;
-        }	
+        }
       }
-    }	
+    }
     if(keepGoing) pair.computeBestTransform();
-  }	
+  }
 }
 
 /* Return true if a stem is already present in a group.
@@ -197,7 +197,7 @@ Registration::removeLonelyStems()
               itSource, itTarget
          ))
       {
-        toBeRemoved = false; 
+        toBeRemoved = false;
       }
     }
     if (toBeRemoved)
@@ -234,7 +234,7 @@ ThreeCombK(const unsigned int k)
 {
   std::vector<std::set<int>> result;
   std::set<int> comb;
-    
+
   for (unsigned int i = 1; i < k - 1; ++i)
   {
     for (unsigned int j = i; j < k; ++j)
@@ -306,7 +306,7 @@ Registration::generateTriplets(StemMap& stemMap, std::vector<StemTriplet>& three
 {
   std::vector<std::set<int>> threePermN = ThreeCombK(stemMap.getStems().size());
   StemTriplet tempTriplet = StemTriplet();
-  
+
   for (auto it : threePermN)
   {
     for (auto jt : it)
@@ -330,7 +330,7 @@ Registration::generatePairs()
 
       if(!this->diametersNotCorresponding(tempPair)
          && this->pairPositionsAreCorresponding(tempPair))
-      {	
+      {
         #pragma omp critical
         {
           this->pairsOfStemTriplets.push_back(tempPair);

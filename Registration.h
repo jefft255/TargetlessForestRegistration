@@ -10,7 +10,7 @@
 
 namespace tlr
 {
-	
+
 typedef std::pair<std::vector<const Stem*>, std::vector<std::complex<double>>> StemTriplet;
 
 class Registration
