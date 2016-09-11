@@ -73,6 +73,13 @@ Registration::computeBestTransform()
 }
 
 void
+Registration::printFinalReport()
+{
+	//TODO
+	
+}
+
+void
 Registration::RANSACtransform(PairOfStemGroups& pair)
 {	
 	StemMap sourceCopy;

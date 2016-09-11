@@ -21,6 +21,7 @@ public:
                      double diamErrorTol, double RANSACtol);
 	~Registration();
 	void computeBestTransform();
+	void printFinalReport();
 
 private:
 	unsigned int removeLonelyStems();
