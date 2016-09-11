@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	mapSource.loadStemMapFile(pathSource, minDiam);
 
 	std::cout << "Beginning registration of "
-		<< pathSource << " to " << pathTarget << std::endl;
+		  << pathSource << " to " << pathTarget << std::endl;
 	
 	time_t start = time(NULL);
 	tlr::Registration reg = tlr::Registration(mapTarget, mapSource, diamErrorTol, distTol);

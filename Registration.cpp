@@ -13,7 +13,7 @@ bool ColinearityGreaterThanTol(StemTriplet& triplet);
 
 // Getting ready for RANSAC, no heavy computation yet.
 Registration::Registration(const StemMap& target, const StemMap& source,
-						   double diamErrorTol, double RANSACtol) :
+                           double diamErrorTol, double RANSACtol) :
 	target(target),
 	source(source),
 	diamErrorTol(diamErrorTol),
@@ -89,17 +89,17 @@ Registration::RANSACtransform(PairOfStemGroups& pair)
 			for(size_t j = 0; j < this->target.getStems().size(); ++j)
 			{
 				if(!this->stemDistanceGreaterThanTol(sourceCopy.getStems()[i],
-													 this->target.getStems()[j])
-				&&
-				!this->stemAlreadyInGroup(this->target.getStems()[j],
-									pair.getTargetGroup())
-				&&
-				!this->relDiamErrorGreaterThanTol(this->target.getStems()[j],
-												  this->source.getStems()[i]))
+                                   this->target.getStems()[j])
+				   &&
+				   !this->stemAlreadyInGroup(this->target.getStems()[j],
+                                                             pair.getTargetGroup())
+				   &&
+				   !this->relDiamErrorGreaterThanTol(this->target.getStems()[j],
+                                                                     this->source.getStems()[i]))
 				{
 					// We add the stem who was not transformed
 					pair.addFittingStem(&this->source.getStems()[i],
-										&this->target.getStems()[j]);
+                                                            &this->target.getStems()[j]);
 					keepGoing = true;
 				}	
 			}
@@ -113,7 +113,7 @@ Registration::RANSACtransform(PairOfStemGroups& pair)
 */
 bool
 Registration::stemAlreadyInGroup(const Stem& stem,
-								 const std::vector<const Stem*> group) const
+                                 const std::vector<const Stem*> group) const
 {
 	for(const auto it : group)
 	{
@@ -319,7 +319,7 @@ Registration::generatePairs()
 		for (size_t j = 0; j < this->threePermTarget.size(); ++j)
 		{
 			PairOfStemGroups tempPair(this->threePermTarget[j],
-									  this->threePermSource[i]);
+                                                  this->threePermSource[i]);
 
 			if(!this->diametersNotCorresponding(tempPair)
 			   && this->pairPositionsAreCorresponding(tempPair))
