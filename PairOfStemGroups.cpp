@@ -7,11 +7,15 @@ namespace tlr
 	
 // Helper functions declarations
 void GetCentroid(const std::vector<const Stem*> group,
-				 Eigen::Vector3d& centroid);
+                 Eigen::Vector3d& centroid);
 bool SortStemPointers(const Stem* stem1, const Stem* stem2);
 
 PairOfStemGroups::PairOfStemGroups(StemTriplet& targetTriplet,
+<<<<<<< HEAD
 								                   StemTriplet& sourceTriplet) :
+=======
+                                   StemTriplet& sourceTriplet) :
+>>>>>>> 44e91495f85b80c1cc2c5dc3736598634cef99f2
 	eigenValuesSource(std::get<1>(sourceTriplet)),
 	eigenValuesTarget(std::get<1>(targetTriplet)),
 	targetGroup(std::get<0>(targetTriplet)),
@@ -106,9 +110,15 @@ PairOfStemGroups::computeBestTransform()
 
 	// Generate the 4x4 transform matrix from the result
 	this->bestTransform << R(0, 0), R(0, 1), R(0, 2), t(0),
+<<<<<<< HEAD
 						             R(1, 0), R(1, 1), R(1, 2), t(1),
 						             R(2, 0), R(2, 1), R(2, 2), t(2),
 						            0,       0,       0,       1;
+=======
+                               R(1, 0), R(1, 1), R(1, 2), t(1),
+                               R(2, 0), R(2, 1), R(2, 2), t(2),
+                               0,       0,       0,       1;
+>>>>>>> 44e91495f85b80c1cc2c5dc3736598634cef99f2
 	this->transformComputed = true;
 	this->updateMeanSquareError();
 	return this->bestTransform;

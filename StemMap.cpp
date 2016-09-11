@@ -64,8 +64,8 @@ StemMap::strStemMap() const
 	std::stringstream output;
 	for (auto it : this->stems)
 	{
-		output << "Coords : " << it.getCoords()[0] << 
-			" " << it.getCoords()[1] << " " << it.getCoords()[2];
+		output << "Coords : " << it.getCoords()[0]
+                       << " " << it.getCoords()[1] << " " << it.getCoords()[2];
 		output << ", Radius : " << it.getRadius() << std::endl;
 	}
 
@@ -76,7 +76,7 @@ bool
 StemMap::operator==(const StemMap &stemMap) const
 {
 	return stemMap.stems == this->stems &&
-		   stemMap.transMatrix == this->transMatrix;
+               stemMap.transMatrix == this->transMatrix;
 }
 
 const std::vector<Stem, Eigen::aligned_allocator<Eigen::Vector4f>>&
@@ -98,12 +98,10 @@ StemMap::loadStemMapFile(std::string path, double minDiam)
 		std::vector<std::string> lineData = Split(line, ' ');
 		if(std::stod(lineData[3]) > minDiam)
 		{
-			tempStem = Stem(
-				std::stod(lineData[0]),
-				std::stod(lineData[1]),
-				std::stod(lineData[2]),
-				std::stod(lineData[3])
-				);
+			tempStem = Stem(std::stod(lineData[0]),
+				        std::stod(lineData[1]),
+				        std::stod(lineData[2]),
+				        std::stod(lineData[3]));
 			this->addStem(tempStem);
 		}
 	}
