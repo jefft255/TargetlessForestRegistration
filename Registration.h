@@ -18,14 +18,14 @@ class Registration
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 	Registration(const StemMap& target, const StemMap& source,
-				 double diamErrorTol, double RANSACtol);
+                     double diamErrorTol, double RANSACtol);
 	~Registration();
 	void computeBestTransform();
 
 private:
 	unsigned int removeLonelyStems();
 	void generateTriplets(StemMap& stemMap,
-						  std::vector<StemTriplet>& threePerm);
+                              std::vector<StemTriplet>& threePerm);
 	void generatePairs();
 	void generateAllEigenValues();
 	void generateEigenValues(StemTriplet& triplet);
@@ -38,7 +38,7 @@ private:
 	void RANSACtransform(PairOfStemGroups& pair);
 	bool stemDistanceGreaterThanTol(const Stem& stem1, const Stem& stem2) const;
 	bool stemAlreadyInGroup(const Stem& stem,
-							const std::vector<const Stem*> group) const;
+                                const std::vector<const Stem*> group) const;
 	bool relDiamErrorGreaterThanTol(const Stem& stem1, const Stem& stem2) const;
 
 	double diamErrorTol;
