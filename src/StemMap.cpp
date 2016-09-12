@@ -96,7 +96,7 @@ StemMap::loadStemMapFile(std::string path, double minDiam)
   while (std::getline(stemMapFile, line))
   {
     std::vector<std::string> lineData = Split(line, ' ');
-    if(std::stod(lineData[3]) > minDiam)
+    if (std::stod(lineData[3]) > minDiam)
     {
       tempStem = Stem(std::stod(lineData[0]),
                       std::stod(lineData[1]),

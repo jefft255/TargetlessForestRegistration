@@ -9,7 +9,7 @@ des tests plus rigoureux, unitaires, vont etre implmente tres bientot.
 */
 int main(int argc, char *argv[])
 {
-  if(argc != 6)
+  if (argc != 6)
   {
     std::cout << "Bad number of arguments" << std::endl
               << "Usage: ./TLR path_source path_target"
@@ -30,12 +30,13 @@ int main(int argc, char *argv[])
   tlr::StemMap mapSource;
   mapSource.loadStemMapFile(pathSource, minDiam);
 
-  std::cout << "Beginning registration of "
+  std::cout << "Registration of "
             << pathSource << " to " << pathTarget << std::endl;
 
   time_t start = time(NULL);
   tlr::Registration reg = tlr::Registration(mapTarget, mapSource, diamErrorTol, distTol);
   reg.computeBestTransform();
+  reg.printFinalReport();
   time_t end = time(NULL);
   long time = end - start;
 

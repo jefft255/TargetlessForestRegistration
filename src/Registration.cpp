@@ -22,61 +22,59 @@ Registration::Registration(const StemMap& target, const StemMap& source,
   std::cout << "Number of unmatched stems: " << this->removeLonelyStems() << std::endl;
   std::cout << "Number of stems in source: " << this->source.getStems().size() << std::endl;
   std::cout << "Number of stems in target: " << this->target.getStems().size() << std::endl;
-  std::cout << "Generating triplets... " << std::endl;
   this->generateTriplets(this->source, this->threePermSource);
   this->generateTriplets(this->target, this->threePermTarget);
   this->generateAllEigenValues();
-  //this->removeHighlyColinearTriplets(this->threePermSource);
+  //this->removeHighlyColinearTriplets(this->threePermSource); This could be useful
   //this->removeHighlyColinearTriplets(this->threePermTarget);
-  std::cout << "Generating pairs of triplets... " << std::endl;
   this->generatePairs();
   std::cout << this->pairsOfStemTriplets.size() << " transforms to compute. " << std::endl;
-  //this->sortPairsByLikelihood(); A voir la pertinence
 }
 
 void
 Registration::computeBestTransform()
 {
-  if(this->pairsOfStemTriplets.size() == 0) return; // Nothing to compute
+  if (this->pairsOfStemTriplets.size() == 0) return; // Nothing to compute
 
-  std::cout << "Computing transformations... " << std::endl;
-
+  // Compute all possible transforms in parallel
   #pragma omp parallel for
   for (size_t i = 0; i < this->pairsOfStemTriplets.size(); ++i)
   {
+    // Compute a first transform then see if other stems matches
     this->pairsOfStemTriplets[i].computeBestTransform();
     this->RANSACtransform(this->pairsOfStemTriplets[i]);
   }
 
-  std::cout << "Sorting results..." << std::endl;
   std::sort(this->pairsOfStemTriplets.begin(), this->pairsOfStemTriplets.end());
-
-  std::cout << "====== Best transform ======" << std::endl
-            << this->pairsOfStemTriplets.begin()->getBestTransform() << std::endl
-            << "MSE : " << this->pairsOfStemTriplets.begin()->getMeanSquareError() << std::endl
-            << "Number of used stems : " << this->pairsOfStemTriplets.begin()->getTargetGroup().size() << std::endl
-            << "------ 3 first stems used for registration -----" << std::endl
-            << "Target : " << std::endl
-            << "Stem 1 : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[0]->getCoords()
-            << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[0]->getRadius() << std::endl
-            << "Stem 2 : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[1]->getCoords()
-            << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[1]->getRadius() << std::endl
-            << "Stem 3 : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[2]->getCoords()
-            << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getTargetGroup()[2]->getRadius() << std::endl
-            << "Source : " << std::endl
-            << "Stem 1 : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[0]->getCoords()
-            << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[0]->getRadius() << std::endl
-            << "Stem 2 : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[1]->getCoords()
-            << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[1]->getRadius() << std::endl
-            << "Stem 3 : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[2]->getCoords()
-            << std::endl << "Radius : " << this->pairsOfStemTriplets.begin()->getSourceGroup()[2]->getRadius() << std::endl;
 }
 
 void
 Registration::printFinalReport()
 {
-  //TODO
+  // Check if there was any transformation done first
+  if (this->pairsOfStemTriplets.size() == 0)
+  {
+    std::cout << "Failure. No matching pair was found." << std::endl;
+    return;
+  }
 
+
+  PairOfStemGroups bestPair = *this->pairsOfStemTriplets.begin();
+  std::cout << "====== Best transform ======" << std::endl
+            << bestPair.getBestTransform() << std::endl
+            << "MSE : " << bestPair.getMeanSquareError() << std::endl
+            << "Number of used stems : " << bestPair.getTargetGroup().size() << std::endl
+            << "------ Stems used for registration -----" << std::endl;
+  for (size_t i = 0; i < bestPair.getTargetGroup().size(); ++i)
+  {
+    std::cout << "---- Stem " << i + 1 << " ----" << std::endl
+              << "-- Target --" << std::endl << "Coordinates:" << std::endl
+              << bestPair.getTargetGroup()[i]->getCoords() << std::endl
+              << "Radius: " << bestPair.getTargetGroup()[i]->getRadius() << std::endl
+              << "-- Source --" << std::endl << "Coordinates:" << std::endl
+              << bestPair.getSourceGroup()[i]->getCoords() << std::endl
+              << "Radius: " << bestPair.getSourceGroup()[i]->getRadius() << std::endl;
+  }
 }
 
 void
@@ -85,7 +83,7 @@ Registration::RANSACtransform(PairOfStemGroups& pair)
   StemMap sourceCopy;
   bool keepGoing = true;
 
-  while(keepGoing)
+  while (keepGoing)
   {
     keepGoing = false;
     sourceCopy = StemMap(this->source);
@@ -95,14 +93,14 @@ Registration::RANSACtransform(PairOfStemGroups& pair)
     {
       for(size_t j = 0; j < this->target.getStems().size(); ++j)
       {
-        if(!this->stemDistanceGreaterThanTol(sourceCopy.getStems()[i],
-                                             this->target.getStems()[j])
-           &&
-           !this->stemAlreadyInGroup(this->target.getStems()[j],
-                                     pair.getTargetGroup())
-           &&
-           !this->relDiamErrorGreaterThanTol(this->target.getStems()[j],
-                                             this->source.getStems()[i]))
+        if (!this->stemDistanceGreaterThanTol(sourceCopy.getStems()[i],
+                                              this->target.getStems()[j])
+            &&
+            !this->stemAlreadyInGroup(this->target.getStems()[j],
+                                      pair.getTargetGroup())
+            &&
+            !this->relDiamErrorGreaterThanTol(this->target.getStems()[j],
+                                              this->source.getStems()[i]))
         {
           // We add the stem who was not transformed
           pair.addFittingStem(&this->source.getStems()[i],
@@ -111,7 +109,7 @@ Registration::RANSACtransform(PairOfStemGroups& pair)
         }
       }
     }
-    if(keepGoing) pair.computeBestTransform();
+    if (keepGoing) pair.computeBestTransform();
   }
 }
 
@@ -122,9 +120,9 @@ bool
 Registration::stemAlreadyInGroup(const Stem& stem,
                                  const std::vector<const Stem*> group) const
 {
-  for(const auto it : group)
+  for (const auto it : group)
   {
-    if(stem.getCoords() == it->getCoords()) return true;
+    if (stem.getCoords() == it->getCoords()) return true;
   }
   return false;
 }
@@ -328,8 +326,8 @@ Registration::generatePairs()
       PairOfStemGroups tempPair(this->threePermTarget[j],
                                 this->threePermSource[i]);
 
-      if(!this->diametersNotCorresponding(tempPair)
-         && this->pairPositionsAreCorresponding(tempPair))
+      if (!this->diametersNotCorresponding(tempPair)
+          && this->pairPositionsAreCorresponding(tempPair))
       {
         #pragma omp critical
         {
@@ -355,9 +353,9 @@ Registration::removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets)
 bool
 Registration::diametersNotCorresponding(PairOfStemGroups& pair)
 {
-  for(auto& it : pair.getRadiusSimilarity())
+  for (auto& it : pair.getRadiusSimilarity())
   {
-    if(this->diamErrorGreaterThanTol(it)) return true;
+    if (this->diamErrorGreaterThanTol(it)) return true;
   }
   return false;
 }
@@ -372,9 +370,9 @@ bool
 Registration::pairPositionsAreCorresponding(PairOfStemGroups& pair)
 {
   const std::vector<double> verticeDiffs = pair.getVerticeDifference();
-  for(double diff : verticeDiffs)
+  for (double diff : verticeDiffs)
   {
-    if(diff > 2*this->RANSACtol) return false;
+    if (diff > 2*this->RANSACtol) return false;
   }
   return true;
 }

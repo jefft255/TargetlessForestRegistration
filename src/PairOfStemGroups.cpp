@@ -188,7 +188,7 @@ PairOfStemGroups::getVerticeDifference() const
   Eigen::Vector4d sourceVector;
   Eigen::Vector4d targetVector;
 
-  for(size_t i = 0; i < this->targetGroup.size(); ++i)
+  for (size_t i = 0; i < this->targetGroup.size(); ++i)
   {
     // Use the next stem, or the first on if we're at the last.
     size_t next = i == this->targetGroup.size()-1 ? 0 : i + 1;
