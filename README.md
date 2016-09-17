@@ -14,3 +14,6 @@ I found that Computree was the best tool for generating a stem map from a scan, 
 
 ### Parameters
 ### Shell script and registration reports
+### Result reliability
+
+## TODOs
