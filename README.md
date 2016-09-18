@@ -22,3 +22,6 @@ You need to add the include path of the most recent version of [Eigen](http://ei
 ### Result reliability
 
 ## TODOs
+- Use an actual build system
+- More formal tests
+- Decent documentation
