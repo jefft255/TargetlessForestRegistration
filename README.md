@@ -1,9 +1,9 @@
 # TargetlessForestRegistration
-Targetless TLS data registration for forest scans. Algorithm by David Kelbe et al., implementation by me.
+Targetless TLS data registration for forest scans. Algorithm by [David Kelbe et al.](http://ieeexplore.ieee.org/document/7446318/?reload=true&arnumber=7446318), implementation by me.
 
 ## Introduction
 This program registers one forest scan to another using a "stem map" representing the position and DBH of each tree in a scan.
-It does so using an algorithm designed by David Kelbe et al., which I've augmented mainly by reimplementing it in C++ and changing a few
+It does so using an algorithm designed by [David Kelbe et al.](http://ieeexplore.ieee.org/document/7446318/?reload=true&arnumber=7446318), which I've augmented mainly by reimplementing it in C++ and changing a few
 detail to try to get execution time under control.
 
 ## Stem maps
