@@ -1,5 +1,8 @@
 #ifndef TLR_REGISTRATION_H_
 #define TLR_REGISTRATION_H_
+/** \file Registration.h
+ *  \brief Header file for the Registration class.
+ */
 
 #include "PairOfStemGroups.h"
 #include <numeric>
@@ -13,6 +16,14 @@ namespace tlr
 
 typedef std::pair<std::vector<const Stem*>, std::vector<std::complex<double>>> StemTriplet;
 
+/**
+ * \brief Container class for the main algorithm
+ *
+ * This class encapsulate the targetless registration algorithm.
+ * To use it, you initialize it and run computeBestTransform. You then
+ * run printFinalReport to see the output. Private methode usually represent
+ * substeps of the algorithm.
+ */
 class Registration
 {
  public:
