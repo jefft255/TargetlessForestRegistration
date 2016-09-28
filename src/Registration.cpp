@@ -140,7 +140,7 @@ bool
 Registration::relDiamErrorGreaterThanTol(const Stem& stem1, const Stem& stem2) const
 {
   return fabs(stem1.getRadius() - stem2.getRadius()) /
-         ((stem1.getRadius() + stem2.getRadius())/2) < this->diamErrorTol;
+         ((stem1.getRadius() + stem2.getRadius())/2) > this->diamErrorTol;
 }
 
 Registration::~Registration()
@@ -226,7 +226,7 @@ Factorial(int n)
   return result;
 }
 
-// Generates all 3 from K combination
+// Generates all 3 from K combinations
 std::vector<std::set<int>>
 ThreeCombK(const unsigned int k)
 {
@@ -353,9 +353,11 @@ Registration::removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets)
 bool
 Registration::diametersNotCorresponding(PairOfStemGroups& pair)
 {
-  for (auto& it : pair.getRadiusSimilarity())
+  for (size_t i = 0; i < pair.getSourceGroup().size(); ++i)
   {
-    if (this->diamErrorGreaterThanTol(it)) return true;
+    if (this->relDiamErrorGreaterThanTol(*pair.getSourceGroup()[i],
+                                         *pair.getTargetGroup()[i]))
+      return true;
   }
   return false;
 }
@@ -375,13 +377,6 @@ Registration::pairPositionsAreCorresponding(PairOfStemGroups& pair)
     if (diff > 2*this->RANSACtol) return false;
   }
   return true;
-}
-
-// This is used for the removal of non-matching pair of triplets (DiametersNotCorresponding).
-bool
-Registration::diamErrorGreaterThanTol(double error)
-{
-  return error > this->diamErrorTol;
 }
 
 /* This is used to determine if the triplet of stem is too linear, which makes

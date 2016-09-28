@@ -34,8 +34,6 @@ class Registration
   // This removes of non-matching pair of triplets.
   bool diametersNotCorresponding(PairOfStemGroups& pair);
   bool pairPositionsAreCorresponding(PairOfStemGroups& pair);
-  // This is used for the removal of non-matching pair of triplets (diametersNotCorresponding).
-  bool diamErrorGreaterThanTol(double error);
   void RANSACtransform(PairOfStemGroups& pair);
   bool stemDistanceGreaterThanTol(const Stem& stem1, const Stem& stem2) const;
   bool stemAlreadyInGroup(const Stem& stem,
