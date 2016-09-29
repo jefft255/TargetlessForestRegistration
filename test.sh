@@ -15,13 +15,13 @@ echo Debut du test d\'alignement des scans de JFC avec la librairie TargetlessRe
 # On aligne seulement dans une direction, par exemple si on teste 1-5 -> 1-4, on ne teste pas 1-4 -> 1-5.
 # l'algorithme est "commutatif", c-a-d marche aussi bien quand on inverse la source et le target.
 
-./TLR 'stem_maps/stemMap1-2inversed.txt' 'stem_maps/stemMap1-1.txt' 0.02 0.35 0.15 > "$DIR/result1-2to1-1.txt"
-./TLR 'stem_maps/stemMap1-3inversed.txt' 'stem_maps/stemMap1-1.txt' 0.02 0.35 0.15 > "$DIR/result1-3to1-1.txt"
+./TLR 'stem_maps/stemMap1-2inversed.txt' 'stem_maps/stemMap1-1.txt'         0.02 0.35 0.15 > "$DIR/result1-2to1-1.txt"
+./TLR 'stem_maps/stemMap1-3inversed.txt' 'stem_maps/stemMap1-1.txt'         0.02 0.35 0.15 > "$DIR/result1-3to1-1.txt"
 ./TLR 'stem_maps/stemMap1-3inversed.txt' 'stem_maps/stemMap1-2inversed.txt' 0.02 0.35 0.15 > "$DIR/result1-3to1-2.txt"
-./TLR 'stem_maps/stemMap1-4inversed.txt' 'stem_maps/stemMap1-1.txt' 0.02 0.35 0.15 > "$DIR/result1-4to1-1.txt"
+./TLR 'stem_maps/stemMap1-4inversed.txt' 'stem_maps/stemMap1-1.txt'         0.02 0.35 0.15 > "$DIR/result1-4to1-1.txt"
 ./TLR 'stem_maps/stemMap1-4inversed.txt' 'stem_maps/stemMap1-2inversed.txt' 0.02 0.35 0.15 > "$DIR/result1-4to1-2.txt"
 ./TLR 'stem_maps/stemMap1-4inversed.txt' 'stem_maps/stemMap1-3inversed.txt' 0.02 0.35 0.15 > "$DIR/result1-4to1-3.txt"
-./TLR 'stem_maps/stemMap1-5inversed.txt' 'stem_maps/stemMap1-1.txt' 0.02 0.35 0.15 > "$DIR/result1-5to1-1.txt"
+./TLR 'stem_maps/stemMap1-5inversed.txt' 'stem_maps/stemMap1-1.txt'         0.02 0.35 0.15 > "$DIR/result1-5to1-1.txt"
 ./TLR 'stem_maps/stemMap1-5inversed.txt' 'stem_maps/stemMap1-2inversed.txt' 0.02 0.35 0.15 > "$DIR/result1-5to1-2.txt"
 ./TLR 'stem_maps/stemMap1-5inversed.txt' 'stem_maps/stemMap1-3inversed.txt' 0.02 0.35 0.15 > "$DIR/result1-5to1-3.txt"
 ./TLR 'stem_maps/stemMap1-5inversed.txt' 'stem_maps/stemMap1-4inversed.txt' 0.02 0.35 0.15 > "$DIR/result1-5to1-4.txt"
