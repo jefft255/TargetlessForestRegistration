@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+DEPRECIATED
 Created on Fri Aug  5 12:38:01 2016
 
 @author: Jean-Francois Tremblay
