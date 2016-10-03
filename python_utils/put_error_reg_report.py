@@ -32,6 +32,9 @@ if __name__ == "__main__":
         i = i + 1
 
     report = report_file_read.readlines()
+    report_file_read.close()
+
+    report_file_write = open(report_file, 'w')
 
     i = 0
     for line in report:
@@ -46,3 +49,7 @@ if __name__ == "__main__":
         i = i + 1
     
     reg_error = tlr_reg - answer_reg
+    report.insert(11, reg_error)
+
+    report_file_write.write(report)
+    report_file_write.close()
