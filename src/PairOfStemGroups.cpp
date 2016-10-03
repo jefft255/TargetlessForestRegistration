@@ -179,7 +179,7 @@ PairOfStemGroups::getMeanSquareError() const
 /*
   This return a vector of length 3. Each element contains the
   difference between the length of corresponding vertice in each
-  stem group.
+  stem group. Only considers the first three stems in the group.
 */
 const std::vector<double>
 PairOfStemGroups::getVerticeDifference() const
