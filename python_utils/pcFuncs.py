@@ -88,8 +88,8 @@ def fusePointCloud(pointCloud1, pointCloud2):
 def getRotationMatrix(phi, theta, psi):
     # TODO A REFAIRE!!!!!!!!!!!!!!!!!!!!!!!!!!!
     result = np.array([[a11,a12,a13],
-                      [a21,a22,a23],
-                      [a31,a32,a33]], np.float64)
+                       [a21,a22,a23],
+                       [a31,a32,a33]], np.float64)
     return result
 
 # Generate a 4x4 transform matrix from euler angles and translation params
