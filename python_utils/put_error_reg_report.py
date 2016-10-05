@@ -25,21 +25,27 @@ if __name__ == "__main__":
         if i == 4:
             break
         matrix_line = line.split(' ')
+    
         answer_reg[i,0] = float(matrix_line[0])
         answer_reg[i,1] = float(matrix_line[1])
         answer_reg[i,2] = float(matrix_line[2])
         answer_reg[i,3] = float(matrix_line[3])
         i = i + 1
 
+    # Store the file's content and close it
     report = report_file_read.readlines()
     report_file_read.close()
 
+    # Reopen the file for writing
     report_file_write = open(report_file, 'w')
 
     i = 0
     for line in report:
         if i >= 6 and i <= 9:
             matrix_line = line.split(' ')
+            # Need this because there are multiple spaces
+            # between elements
+            matrix_line = filter(None, matrix_line)
             tlr_reg[i,0] = float(matrix_line[0])
             tlr_reg[i,1] = float(matrix_line[1])
             tlr_reg[i,2] = float(matrix_line[2])
