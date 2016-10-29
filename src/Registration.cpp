@@ -1,15 +1,8 @@
 #include "Registration.h"
-#include <unordered_set>
-#include <set>
 #include <atomic>
 
 namespace tlr
 {
-
-// Helper functions declaration
-double GetMeanOfVector(const Eigen::Vector4d& coords);
-std::vector<std::set<int>> NCombK(const int n, const int k);
-bool ColinearityGreaterThanTol(StemTriplet& triplet);
 
 // Getting ready for RANSAC, no heavy computation yet.
 Registration::Registration(const StemMap& target, const StemMap& source,
@@ -24,9 +17,6 @@ Registration::Registration(const StemMap& target, const StemMap& source,
   std::cout << "Number of stems in target: " << this->target.getStems().size() << std::endl;
   this->generateTriplets(this->source, this->threePermSource);
   this->generateTriplets(this->target, this->threePermTarget);
-  this->generateAllEigenValues();
-  //this->removeHighlyColinearTriplets(this->threePermSource); This could be useful
-  //this->removeHighlyColinearTriplets(this->threePermTarget);
   this->generatePairs();
   std::cout << this->pairsOfStemTriplets.size() << " transforms to compute. " << std::endl;
 }
@@ -118,7 +108,7 @@ Registration::RANSACtransform(PairOfStemGroups& pair)
 */
 bool
 Registration::stemAlreadyInGroup(const Stem& stem,
-                                 const std::vector<const Stem*> group) const
+                                 const StemGroup group) const
 {
   for (const auto it : group)
   {
@@ -253,43 +243,6 @@ ThreeCombK(const unsigned int k)
   return result;
 }
 
-void
-Registration::generateEigenValues(StemTriplet& triplet)
-{
-  // Can be coded much cleaner. Needs to be revisited.
-  Eigen::Matrix3d covarianceMatrix;
-  for (int i = 0; i < 3; ++i)
-  {
-    for (int j = 0; j < 3; ++j)
-    {
-      covarianceMatrix(i, j) =
-         ((std::get<0>(triplet))[i]->getCoords()[0] - GetMeanOfVector((std::get<0>(triplet))[i]->getCoords()))
-        *((std::get<0>(triplet))[j]->getCoords()[0] - GetMeanOfVector((std::get<0>(triplet))[j]->getCoords()))
-        +((std::get<0>(triplet))[i]->getCoords()[1] - GetMeanOfVector((std::get<0>(triplet))[i]->getCoords()))
-        *((std::get<0>(triplet))[j]->getCoords()[1] - GetMeanOfVector((std::get<0>(triplet))[j]->getCoords()))
-        +((std::get<0>(triplet))[i]->getCoords()[2] - GetMeanOfVector((std::get<0>(triplet))[i]->getCoords()))
-        *((std::get<0>(triplet))[j]->getCoords()[2] - GetMeanOfVector((std::get<0>(triplet))[j]->getCoords()));
-    }
-  }
-  Eigen::Matrix3d::EigenvaluesReturnType eigenvalues = covarianceMatrix.eigenvalues();
-  std::get<1>(triplet).push_back(eigenvalues(0));
-  std::get<1>(triplet).push_back(eigenvalues(1));
-  std::get<1>(triplet).push_back(eigenvalues(2));
-}
-
-void
-Registration::generateAllEigenValues()
-{
-  for (auto& it : this->threePermSource)
-  {
-    this->generateEigenValues(it);
-  }
-  for (auto& it : this->threePermTarget)
-  {
-    this->generateEigenValues(it);
-  }
-}
-
 // This is useful for computing the covariance matrix.
 double
 GetMeanOfVector(const Eigen::Vector4d& coords)
@@ -300,17 +253,17 @@ GetMeanOfVector(const Eigen::Vector4d& coords)
 /* This function populate the stem triplets from both the target scan and the source scan.
    We use the nPerm function to determine all the possible combinations. */
 void
-Registration::generateTriplets(StemMap& stemMap, std::vector<StemTriplet>& threePerm)
+Registration::generateTriplets(StemMap& stemMap, std::vector<StemGroup>& threePerm)
 {
   std::vector<std::set<int>> threePermN = ThreeCombK(stemMap.getStems().size());
-  StemTriplet tempTriplet = StemTriplet();
+  StemGroup tempTriplet = StemGroup();
 
   for (auto it : threePermN)
   {
     for (auto jt : it)
-      std::get<0>(tempTriplet).push_back(&stemMap.getStems()[jt - 1]);
+    tempTriplet.push_back(&stemMap.getStems()[jt - 1]);
     threePerm.push_back(tempTriplet);
-    tempTriplet = StemTriplet();
+    tempTriplet = StemGroup();
   }
 }
 
@@ -336,17 +289,6 @@ Registration::generatePairs()
       }
     }
   }
-}
-
-void
-Registration::removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets)
-{
-  triplets.erase(
-    std::remove_if(
-      triplets.begin(),
-      triplets.end(),
-      ColinearityGreaterThanTol),
-    triplets.end());
 }
 
 // This removes of non-matching (diameter-wise) pair of triplets.
@@ -377,16 +319,6 @@ Registration::pairPositionsAreCorresponding(PairOfStemGroups& pair)
     if (diff > 2*this->RANSACtol) return false;
   }
   return true;
-}
-
-/* This is used to determine if the triplet of stem is too linear, which makes
-   it unfit for the rigid transform. */
-bool
-ColinearityGreaterThanTol(StemTriplet& triplet)
-{
-  return std::get<1>(triplet)[0].real() /
-         (std::get<1>(triplet)[0].real() + std::get<1>(triplet)[1].real())
-         > LINEARITY_TOL;
 }
 
 } // namespace tlr

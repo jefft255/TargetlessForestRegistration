@@ -5,17 +5,10 @@
 namespace tlr
 {
 
-// Helper functions declarations
-void GetCentroid(const std::vector<const Stem*> group,
-                 Eigen::Vector3d& centroid);
-bool SortStemPointers(const Stem* stem1, const Stem* stem2);
-
-PairOfStemGroups::PairOfStemGroups(StemTriplet& targetTriplet,
-                                   StemTriplet& sourceTriplet) :
-  eigenValuesSource(std::get<1>(sourceTriplet)),
-  eigenValuesTarget(std::get<1>(targetTriplet)),
-  targetGroup(std::get<0>(targetTriplet)),
-  sourceGroup(std::get<0>(sourceTriplet)),
+PairOfStemGroups::PairOfStemGroups(StemGroup& targetTriplet,
+                                   StemGroup& sourceTriplet) :
+  targetGroup(targetTriplet),
+  sourceGroup(sourceTriplet),
   bestTransform(Eigen::Matrix4d::Identity()),
   transformComputed(false)
 {
@@ -26,17 +19,6 @@ PairOfStemGroups::PairOfStemGroups(StemTriplet& targetTriplet,
 
 PairOfStemGroups::~PairOfStemGroups()
 {
-}
-
-double
-PairOfStemGroups::getLikelihood() const
-{
-  // TODO. Kelbe ne considere pas les valeurs complexes????? Aussi peut etre que
-  // utiliser la troisieme valeur propre pourrait etre utile. A voir.
-  return pow(this->eigenValuesTarget[0].real() -
-         this->eigenValuesSource[0].real(),2)  +
-         pow(this->eigenValuesTarget[1].real() -
-         this->eigenValuesSource[1].real(),2);
 }
 
 /*
@@ -143,13 +125,13 @@ PairOfStemGroups::getRadiusSimilarity() const
   return this->radiusSimilarity;
 }
 
-const std::vector<const Stem*>
+const StemGroup 
 PairOfStemGroups::getTargetGroup() const
 {
   return this->targetGroup;
 }
 
-const std::vector<const Stem*>
+const StemGroup 
 PairOfStemGroups::getSourceGroup() const
 {
   return this->sourceGroup;
@@ -214,7 +196,7 @@ operator<(PairOfStemGroups& l, PairOfStemGroups& r)
 
 // Compute the "average" point of a group of stems. Used in the least square solving.
 void
-GetCentroid(const std::vector<const Stem*> group, Eigen::Vector3d& centroid)
+GetCentroid(const StemGroup group, Eigen::Vector3d& centroid)
 {
   centroid << 0, 0, 0;
   for (auto& it : group)

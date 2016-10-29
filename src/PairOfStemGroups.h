@@ -6,21 +6,24 @@
 namespace tlr
 {
 
-typedef std::pair<std::vector<const Stem*>, std::vector<std::complex<double>>> StemTriplet;
+typedef std::vector<const Stem*> StemGroup;
+// Helper functions declarations
+void GetCentroid(const StemGroup group,
+                 Eigen::Vector3d& centroid);
+bool SortStemPointers(const Stem* stem1, const Stem* stem2);
 
 class PairOfStemGroups
 {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW // Fixes wierd memory crashes
-  PairOfStemGroups(StemTriplet& targetTriplet, StemTriplet& sourceTriplet);
+  PairOfStemGroups(StemGroup& targetTriplet, StemGroup& sourceTriplet);
   ~PairOfStemGroups();
-  double getLikelihood() const;
   const std::vector<double>& getRadiusSimilarity() const;
   const std::vector<double> getVerticeDifference() const;
   Eigen::Matrix4d computeBestTransform();
   Eigen::Matrix4d getBestTransform() const;
-  const std::vector<const Stem*> getTargetGroup() const;
-  const std::vector<const Stem*> getSourceGroup() const;
+  const StemGroup getTargetGroup() const;
+  const StemGroup getSourceGroup() const;
   void addFittingStem(const Stem* sourceStem, const Stem* targetStem);
   // To sort by likelihood, and if the transform is computed sort by MSE
   friend bool operator<(PairOfStemGroups& l, PairOfStemGroups& r);
@@ -37,14 +40,11 @@ class PairOfStemGroups
 
   TODO rendre ca plus clair
   */
-  std::vector<const Stem*> targetGroup;
-  std::vector<const Stem*> sourceGroup;
-  double likelihood;
+  StemGroup targetGroup;
+  StemGroup sourceGroup;
   double meanSquareError;
   /* They should be real but I put a complex type this way the
   compiler won't complain */
-  std::vector<std::complex<double>> eigenValuesTarget;
-  std::vector<std::complex<double>> eigenValuesSource;
   std::vector<double> radiusSimilarity;
   /* This is sadly necessary because of alignement issues in Eigen. Declaring
   the transorm matrix as dynamically sized instead of 4x4 fixes bugs with matrix

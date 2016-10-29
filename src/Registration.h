@@ -7,14 +7,16 @@
 #include "PairOfStemGroups.h"
 #include <numeric>
 #include <list>
-
-// Define thresold for colinear data
-#define LINEARITY_TOL 0.975
+#include <unordered_set>
+#include <set>
 
 namespace tlr
 {
 
-typedef std::pair<std::vector<const Stem*>, std::vector<std::complex<double>>> StemTriplet;
+typedef std::vector<const Stem*> StemGroup;
+// Helper functions declaration
+double GetMeanOfVector(const Eigen::Vector4d& coords);
+std::vector<std::set<int>> NCombK(const int n, const int k);
 
 /**
  * \brief Container class for the main algorithm
@@ -37,18 +39,15 @@ class Registration
  private:
   unsigned int removeLonelyStems();
   void generateTriplets(StemMap& stemMap,
-                        std::vector<StemTriplet>& threePerm);
+                        std::vector<StemGroup>& threePerm);
   void generatePairs();
-  void generateAllEigenValues();
-  void generateEigenValues(StemTriplet& triplet);
-  void removeHighlyColinearTriplets(std::vector<StemTriplet>& triplets);
   // This removes of non-matching pair of triplets.
   bool diametersNotCorresponding(PairOfStemGroups& pair);
   bool pairPositionsAreCorresponding(PairOfStemGroups& pair);
   void RANSACtransform(PairOfStemGroups& pair);
   bool stemDistanceGreaterThanTol(const Stem& stem1, const Stem& stem2) const;
   bool stemAlreadyInGroup(const Stem& stem,
-                          const std::vector<const Stem*> group) const;
+                          const StemGroup group) const;
   bool relDiamErrorGreaterThanTol(const Stem& stem1, const Stem& stem2) const;
 
   double diamErrorTol;
@@ -60,8 +59,8 @@ class Registration
   with the covariance matrix of the vector. It is here and not in the PairOfStemTriplets
   class because it would result in the eigenvalues being computed multiplet times
   for the same triplet which is computationally expensive. */
-  std::vector<StemTriplet> threePermTarget;
-  std::vector<StemTriplet> threePermSource;
+  std::vector<StemGroup> threePermTarget;
+  std::vector<StemGroup> threePermSource;
   /* Contains all possible combinaison of 2 triplets of trees, one from the target
   and another from the source. Used list because we are going to be deleting
   a lot of pairs as we go along. */
