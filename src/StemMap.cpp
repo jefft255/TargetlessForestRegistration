@@ -91,7 +91,6 @@ StemMap::loadStemMapFile(std::string path, double minDiam)
   std::ifstream stemMapFile(path);
   std::string line;
   Stem tempStem;
-  int i = 0;
 
   while (std::getline(stemMapFile, line))
   {

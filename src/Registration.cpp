@@ -7,10 +7,10 @@ namespace tlr
 // Getting ready for RANSAC, no heavy computation yet.
 Registration::Registration(const StemMap& target, const StemMap& source,
                            double diamErrorTol, double RANSACtol) :
-  target(target),
-  source(source),
   diamErrorTol(diamErrorTol),
-  RANSACtol(RANSACtol)
+  RANSACtol(RANSACtol),
+  target(target),
+  source(source)
 {
   std::cout << "Number of unmatched stems: " << this->removeLonelyStems() << std::endl;
   std::cout << "Number of stems in source: " << this->source.getStems().size() << std::endl;

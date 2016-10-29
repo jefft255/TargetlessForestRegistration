@@ -150,6 +150,7 @@ PairOfStemGroups::updateMeanSquareError()
   }
 
   this->meanSquareError = MSE;
+  return MSE;
 }
 
 double
