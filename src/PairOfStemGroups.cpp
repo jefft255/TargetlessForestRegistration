@@ -84,13 +84,23 @@ PairOfStemGroups::computeBestTransform()
   matricePourSavoirDet = svd.matrixV()*svd.matrixU().transpose();
   matricePourTrouverR(2, 2) = matricePourSavoirDet.determinant();
   R = svd.matrixV()*matricePourTrouverR*svd.matrixU().transpose();
+  // Skewed matrix and determinant correction ; there is numerical
+  // degradation if we don't do this.
+  // ==== Not sure how well this helps, might remove this and stay with R ====
+  Eigen::MatrixXd Rs = 0.5*(R - R.transpose());
+  Rs(0, 0) = R(0, 0);
+  Rs(1, 1) = R(1, 1);
+  Rs(2, 2) = R(2, 2);
+  double detCorr = cbrt(1.0/Rs.determinant());
+  Rs = detCorr*Rs;
+  // ==== End of numerical correction ===
   t = qbar - R*pbar;
 
   // Generate the 4x4 transform matrix from the result
-  this->bestTransform << R(0, 0), R(0, 1), R(0, 2), t(0),
-                        -R(0, 1), R(1, 1), R(1, 2), t(1),
-                        -R(0, 2),-R(1, 2), R(2, 2), t(2),
-                         0,       0,       0,       1;
+  this->bestTransform << Rs(0, 0), Rs(0, 1), Rs(0, 2), t(0),
+                         Rs(1, 0), Rs(1, 1), Rs(1, 2), t(1),
+                         Rs(2, 0), Rs(2, 1), Rs(2, 2), t(2),
+                         0,        0,        0,        1;
   this->transformComputed = true;
   this->updateMeanSquareError();
   return this->bestTransform;
