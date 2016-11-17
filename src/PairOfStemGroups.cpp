@@ -88,8 +88,8 @@ PairOfStemGroups::computeBestTransform()
 
   // Generate the 4x4 transform matrix from the result
   this->bestTransform << R(0, 0), R(0, 1), R(0, 2), t(0),
-                         -R(0, 1), R(1, 1), R(1, 2), t(1),
-                         -R(0, 2), -R(1, 2), R(2, 2), t(2),
+                        -R(0, 1), R(1, 1), R(1, 2), t(1),
+                        -R(0, 2),-R(1, 2), R(2, 2), t(2),
                          0,       0,       0,       1;
   this->transformComputed = true;
   this->updateMeanSquareError();
