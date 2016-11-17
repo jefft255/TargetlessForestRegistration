@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 #include "Registration.h"
+#include <omp.h>
 
 /*
 main.cpp

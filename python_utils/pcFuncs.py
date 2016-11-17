@@ -119,10 +119,10 @@ def reformatStemMap(pathDBH, pathStemMap):
         # Skip the header
         if i > 1:
             result.append([])
-            result[i-1].append(contenuLigneDBH[1])
             result[i-1].append(contenuLigneDBH[2])
             result[i-1].append(contenuLigneDBH[3])
             result[i-1].append(contenuLigneDBH[4])
+            result[i-1].append(contenuLigneDBH[5])
         i = i + 1
 
     for row in result:
@@ -130,7 +130,7 @@ def reformatStemMap(pathDBH, pathStemMap):
             resultFile.write(str(row[0]) + ' ')
             resultFile.write(str(row[1]) + ' ')
             resultFile.write(str(row[2]) + ' ')
-            resultFile.write(str(row[3]))
+            resultFile.write(str(row[3]) + '\n')
 
 # Apply a transformation matrix to a stem map file (x y z dbh)
 def transformStemMap(pathOriginalStemMap, pathTransStemMap, transMatrix):
