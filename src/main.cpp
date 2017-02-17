@@ -20,6 +20,8 @@ int main(int argc, char *argv[])
     return 1;
   }
 
+  //omp_set_num_threads(4);
+
   double minDiam = std::stod(argv[3]);
   double diamErrorTol = std::stod(argv[4]);
   double distTol = std::stod(argv[5]);

@@ -4,11 +4,39 @@
 
 import re
 import numpy as np
-import math
+import scipy.spatial
+from math import sin, cos
 import matplotlib.pyplot as plt
 
+def updateStemMapWithMNT(pathMNT, pathOriginalStemMap, pathNewStemMap):
+    MNT = loadAscFile(pathMNT, ';')
+    MNT3dtree = scipy.spatial.KDTree(MNT[:,[0,1]])
+    orginalFile = open(pathOriginalStemMap, 'r')
+    transFile = open(pathNewStemMap, 'w')
+    originalData = orginalFile.readlines()
+
+    for rowOriginal in originalData:
+        stemOriginal = rowOriginal.split(' ')
+        coordsStem = np.array([float(stemOriginal[0]),
+                                       float(stemOriginal[1]),
+                                       float(stemOriginal[2])])
+        distMNT, idMNT = MNT3dtree.query(coordsStem[[0,1]], 3)
+        print("====================")
+        print(MNT[idMNT[0],:])
+        print(MNT[idMNT[1],:])
+        print(coordsStem)
+        newZ = min(MNT[idMNT[0],2], MNT[idMNT[1],2])
+        print(newZ)
+        transFile.write(str(coordsStem[0]) + ' ')
+        transFile.write(str(coordsStem[1]) + ' ')
+        transFile.write(str(newZ) + ' ')
+        transFile.write(str(stemOriginal[3]))
+
+
+
+
 # Load .ASC point cloud
-def loadAscFile(inputFileString):
+def loadAscFile(inputFileString, sep=' '):
     inputFile = open(inputFileString, 'r')
     headerLinesSkipped = False
     lineCounter = 0
@@ -25,7 +53,7 @@ def loadAscFile(inputFileString):
             if not headerLinesSkipped:
                 # La premiere ligne numerique marque la fin du header
                 headerLinesSkipped = True
-            contenuLigne = line.split(' ')
+            contenuLigne = line.split(sep)
             x,y,z = contenuLigne[0], contenuLigne[1], contenuLigne[2]
             if x and y and z:
                 # Si les 3 coordonnee sont rempli
@@ -86,11 +114,21 @@ def fusePointCloud(pointCloud1, pointCloud2):
     return np.concatenate((pointCloud1, pointCloud2))
 
 def getRotationMatrix(phi, theta, psi):
-    # TODO A REFAIRE!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    result = np.array([[a11,a12,a13],
-                       [a21,a22,a23],
-                       [a31,a32,a33]], np.float64)
-    return result
+    # Convert degrees to radians
+    phi = 0.0174533*phi
+    theta = 0.0174533*theta
+    psi = 0.0174533*psi
+    
+    Rx = np.matrix([[1,0,0],
+                   [0,cos(phi),-sin(phi)],
+                   [0,sin(phi),cos(phi)]], np.float64)
+    Ry = np.matrix([[cos(theta),0,sin(theta)],
+                   [0,1,0],
+                   [-sin(theta),0,cos(theta)]], np.float64)
+    Rz = np.matrix([[cos(psi),-sin(psi),0],
+                   [sin(psi),cos(psi),0],
+                   [0,0,1]], np.float64)
+    return Rz*Ry*Rx
 
 # Generate a 4x4 transform matrix from euler angles and translation params
 def getTransformationMatrix(phi, theta, psi, tx, ty, tz):
@@ -119,10 +157,10 @@ def reformatStemMap(pathDBH, pathStemMap):
         # Skip the header
         if i > 1:
             result.append([])
+            result[i-1].append(contenuLigneDBH[0])
+            result[i-1].append(contenuLigneDBH[1])
             result[i-1].append(contenuLigneDBH[2])
             result[i-1].append(contenuLigneDBH[3])
-            result[i-1].append(contenuLigneDBH[4])
-            result[i-1].append(contenuLigneDBH[5])
         i = i + 1
 
     for row in result:
@@ -130,7 +168,7 @@ def reformatStemMap(pathDBH, pathStemMap):
             resultFile.write(str(row[0]) + ' ')
             resultFile.write(str(row[1]) + ' ')
             resultFile.write(str(row[2]) + ' ')
-            resultFile.write(str(row[3]) + '\n')
+            resultFile.write(str(row[3]))
 
 # Apply a transformation matrix to a stem map file (x y z dbh)
 def transformStemMap(pathOriginalStemMap, pathTransStemMap, transMatrix):
@@ -173,3 +211,15 @@ def plotStemMap(pathsStemMap, colors):
     ax.set_xlim((-30, 30))
     ax.set_ylim((-30, 30))
     plt.show()
+
+def printMatrix(matrix):
+    str = ""
+    for row in matrix:
+        i = 0
+        for ele in row:
+            str += '{:.5f}'.format(ele)
+            if i != 3:
+                str += ' '
+            i += 1
+        str += '\n'
+    print(str)

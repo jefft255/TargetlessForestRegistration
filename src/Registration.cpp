@@ -71,36 +71,30 @@ void
 Registration::RANSACtransform(PairOfStemGroups& pair)
 {
   StemMap sourceCopy;
-  bool keepGoing = true;
 
-  while (keepGoing)
+  sourceCopy = StemMap(this->source);
+  sourceCopy.applyTransMatrix(pair.getBestTransform());
+
+  for(size_t i = 0; i < sourceCopy.getStems().size(); ++i)
   {
-    keepGoing = false;
-    sourceCopy = StemMap(this->source);
-    sourceCopy.applyTransMatrix(pair.getBestTransform());
-
-    for(size_t i = 0; i < sourceCopy.getStems().size(); ++i)
+    for(size_t j = 0; j < this->target.getStems().size(); ++j)
     {
-      for(size_t j = 0; j < this->target.getStems().size(); ++j)
+      if (!this->stemDistanceGreaterThanTol(sourceCopy.getStems()[i],
+                                            this->target.getStems()[j])
+          &&
+          !this->stemAlreadyInGroup(this->target.getStems()[j],
+                                    pair.getTargetGroup())
+          &&
+          !this->relDiamErrorGreaterThanTol(this->target.getStems()[j],
+                                            this->source.getStems()[i]))
       {
-        if (!this->stemDistanceGreaterThanTol(sourceCopy.getStems()[i],
-                                              this->target.getStems()[j])
-            &&
-            !this->stemAlreadyInGroup(this->target.getStems()[j],
-                                      pair.getTargetGroup())
-            &&
-            !this->relDiamErrorGreaterThanTol(this->target.getStems()[j],
-                                              this->source.getStems()[i]))
-        {
-          // We add the stem who was not transformed
-          pair.addFittingStem(&this->source.getStems()[i],
-                              &this->target.getStems()[j]);
-          keepGoing = true;
-        }
+        // We add the stem who was not transformed
+        pair.addFittingStem(&this->source.getStems()[i],
+                            &this->target.getStems()[j]);
       }
     }
-    if (keepGoing) pair.computeBestTransform();
   }
+  pair.computeBestTransform();
 }
 
 /* Return true if a stem is already present in a group.
@@ -261,7 +255,7 @@ Registration::generateTriplets(StemMap& stemMap, std::vector<StemGroup>& threePe
   for (auto it : threePermN)
   {
     for (auto jt : it)
-    tempTriplet.push_back(&stemMap.getStems()[jt - 1]);
+      tempTriplet.push_back(&stemMap.getStems()[jt - 1]);
     threePerm.push_back(tempTriplet);
     tempTriplet = StemGroup();
   }
