@@ -1,2 +1,2 @@
-g++ main.cpp PairOfStemGroups.cpp Registration.cpp Stem.cpp StemMap.cpp -g -o ../TLR -I /home/jeff/srcLibs/eigen/ -std=c++14 -fopenmp
+g++ main.cpp PairOfStemGroups.cpp Registration.cpp Stem.cpp StemMap.cpp -g -o ../TLR -I ~/srcLibs/eigen/ -std=c++14 -fopenmp
 
