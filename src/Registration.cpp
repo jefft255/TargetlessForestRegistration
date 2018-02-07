@@ -26,11 +26,13 @@ namespace tlr
 
 // Getting ready for RANSAC, no heavy computation yet.
 Registration::Registration(const StemMap& target, const StemMap& source,
-                           double diamErrorTol, double RANSACtol) :
+                           double diamErrorTol, double RANSACtol,
+                           bool kelbeRegistration) :
   diamErrorTol(diamErrorTol),
   RANSACtol(RANSACtol),
   target(target),
-  source(source)
+  source(source),
+  kelbeRegistration(kelbeRegistration)
 {
   std::cout << "Number of unmatched stems: " << this->removeLonelyStems() << std::endl;
   std::cout << "Number of stems in source: " << this->source.getStems().size() << std::endl;
@@ -293,8 +295,9 @@ Registration::generatePairs()
       PairOfStemGroups tempPair(this->threePermTarget[j],
                                 this->threePermSource[i]);
 
+      // Don't discriminate using positions if imitating Kelbe et al. registration
       if (!this->diametersNotCorresponding(tempPair)
-          && this->pairPositionsAreCorresponding(tempPair))
+          && (this->pairPositionsAreCorresponding(tempPair) || this->kelbeRegistration))
       {
         #pragma omp critical
         {

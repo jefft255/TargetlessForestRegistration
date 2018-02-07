@@ -51,7 +51,8 @@ class Registration
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
   Registration(const StemMap& target, const StemMap& source,
-               double diamErrorTol, double RANSACtol);
+               double diamErrorTol, double RANSACtol,
+               bool kelbeRegistration);
   ~Registration();
   void computeBestTransform();
   void printFinalReport();
@@ -85,6 +86,7 @@ class Registration
   and another from the source. Used list because we are going to be deleting
   a lot of pairs as we go along. */
   std::vector<PairOfStemGroups> pairsOfStemTriplets;
+  bool kelbeRegistration;
 };
 
 } // namespace tlr

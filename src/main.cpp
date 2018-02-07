@@ -31,7 +31,7 @@ des tests plus rigoureux, unitaires, vont etre implmente tres bientot.
 */
 int main(int argc, char *argv[])
 {
-  if (argc != 6)
+  if (argc != 6 || argc != 7)
   {
     std::cout << "Bad number of arguments" << std::endl
               << "Usage: ./TLR path_source path_target"
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
             << pathSource << " to " << pathTarget << std::endl;
 
   time_t start = time(NULL);
-  tlr::Registration reg = tlr::Registration(mapTarget, mapSource, diamErrorTol, distTol);
+  tlr::Registration reg = tlr::Registration(mapTarget, mapSource, diamErrorTol, distTol, argc == 7);
   reg.computeBestTransform();
   reg.printFinalReport();
   time_t end = time(NULL);
