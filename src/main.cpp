@@ -31,7 +31,7 @@ des tests plus rigoureux, unitaires, vont etre implmente tres bientot.
 */
 int main(int argc, char *argv[])
 {
-  if (argc != 6 || argc != 7)
+  if (argc != 6 && argc != 7)
   {
     std::cout << "Bad number of arguments" << std::endl
               << "Usage: ./TLR path_source path_target"

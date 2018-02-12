@@ -306,6 +306,15 @@ Registration::generatePairs()
       }
     }
   }
+  
+  if (this->kelbeRegistration)
+  {
+    auto geometricSimilaritySorter = [](PairOfStemGroups& left, PairOfStemGroups& right) -> bool
+    {
+        return left.getVerticeDifference() < right.getVerticeDifference();
+    };
+    std::sort(this->pairsOfStemTriplets.begin(), this->pairsOfStemTriplets.end(), geometricSimilaritySorter);
+  }
 }
 
 // This removes of non-matching (diameter-wise) pair of triplets.
@@ -337,5 +346,6 @@ Registration::pairPositionsAreCorresponding(PairOfStemGroups& pair)
   }
   return true;
 }
+
 
 } // namespace tlr
