@@ -20,6 +20,7 @@
 
 #include "Registration.h"
 #include <atomic>
+#include <algorithm>
 
 namespace tlr
 {
@@ -49,15 +50,28 @@ Registration::computeBestTransform()
   if (this->pairsOfStemTriplets.size() == 0) return; // Nothing to compute
 
   // Compute all possible transforms in parallel
+  size_t nRansacIter;
+  if (this->kelbeRegistration) {
+    // Try 1000 best candidates in kelbe registration. If we try all it will
+    // be too long. Trying the 1000 best candidates will still be very fast
+    // and is more than enough.
+    nRansacIter = std::min(this->pairsOfStemTriplets.size(), (size_t)1000);
+  }
+  else
+  {
+    nRansacIter = this->pairsOfStemTriplets.size();  
+  }
+
   #pragma omp parallel for
-  for (size_t i = 0; i < this->pairsOfStemTriplets.size(); ++i)
+  for (size_t i = 0; i < nRansacIter; ++i)
   {
     // Compute a first transform then see if other stems matches
     this->pairsOfStemTriplets[i].computeBestTransform();
     this->RANSACtransform(this->pairsOfStemTriplets[i]);
   }
 
-  std::sort(this->pairsOfStemTriplets.begin(), this->pairsOfStemTriplets.end());
+  // Only sort the first 1000 in case of kelbe's registration
+  std::sort(this->pairsOfStemTriplets.begin(), this->pairsOfStemTriplets.begin() + nRansacIter);
 }
 
 void
